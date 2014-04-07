@@ -9,14 +9,14 @@
     <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
 
     <!-- Styles -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/asciidoctor.css" rel="stylesheet">
-    <link href="/css/base.css" rel="stylesheet">
+    <link href="/${config.site_context}/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/${config.site_context}/css/asciidoctor.css" rel="stylesheet">
+    <link href="/${config.site_context}/css/base.css" rel="stylesheet">
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
-    <link href="/css/prettify_desert_theme.css" rel="stylesheet">
+    <link href="/${config.site_context}/css/prettify_desert_theme.css" rel="stylesheet">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
