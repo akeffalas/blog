@@ -7,7 +7,7 @@
 
             <p class="text-left text-muted">
                 <i class="fa fa-calendar"></i> <small>${content.date?string("EEEE, MMMM dd, yyyy")}</small>
-                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/${config.site_context}/${content.uri}#disqus_thread">Comments</a>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/${config.site_context}${content.uri}#disqus_thread">Comments</a>
             </p>
 
             <span class="glyphicon glyphicon-tag"></span>
@@ -21,13 +21,13 @@
 
         <br>
 
-        <div class="fb-like" data-href="/${config.site_context}/${content.uri}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+        <div class="fb-like" data-href="/${config.site_context}${content.uri}" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
 
 
-        <div class="g-plusone" data-size="medium" data-href="/${config.site_context}/${content.uri}"></div>
+        <div class="g-plusone" data-size="medium" data-href="/${config.site_context}${content.uri}"></div>
 
 
-        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/${config.site_context}/${content.uri}" data-via="akeffalas" data-lang="en">Tweet</a>
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/${config.site_context}${content.uri}" data-via="akeffalas" data-lang="en">Tweet</a>
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 
 
