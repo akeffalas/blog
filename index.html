@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="favicon.ico?v=2" />
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/tags/java.html">Java</a></li>
+                <li><a href="/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+	<div class="page-header">
+            <h1>Recent Posts</h1>
+	</div>
+
+
+                    <div class="panel panel-info">
+                      <div class="panel-heading">                        
+                        <i class="fa fa-lg panel-title"><a href="/2014/04/jenkins-build-info-maven-artifacts.html" class="blogpost-title">Associate Jenkins Build Info with Maven Artifacts</a></i>
+                      </div>
+
+                      <div class="panel-body">
+                        <p class="text-left text-muted">
+                          <i class="fa fa-calendar"></i> <small>Sunday, April 06, 2014</small>
+                          &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/2014/04/jenkins-build-info-maven-artifacts.html#disqus_thread">Comments</a>
+                        </p>
+
+                    <span class="glyphicon glyphicon-tag"></span>
+                      <a href="/tags/jenkins.html"><span class="label label-primary">jenkins</span></a>
+                      <a href="/tags/maven.html"><span class="label label-primary">maven</span></a>
+                      <a href="/tags/java.html"><span class="label label-primary">java</span></a>
+                      <a href="/tags/git.html"><span class="label label-primary">git</span></a>
+                    <hr>
+                   
+                        <p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>How many times have you tried to debug a problem with one of your components in production without knowing which revision of the codebase has been deployed?  Many times the Maven artifact version number isn&#8217;t sufficient.  Sure, you know the release version of a certain JAR file (1.0.1000 for example), but how do you know if this contains a specific source code commit?  Not to mention debugging during development when your artifact versions are typically *-SNAPSHOT; that&#8217;s not very useful at all.</p>
+</div>
+<div class="paragraph">
+<p>We&#8217;re going to configure a poor man&#8217;s configuration management scheme to incorporate more information with your build artifacts.  Let&#8217;s assume that you have a continuous integration server setup to build your project&#8217;s artifacts.  Here are some pieces of information that would be useful to bundle with a JAR, WAR, etc.:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Build time</p>
+</li>
+<li>
+<p>Build number</p>
+</li>
+<li>
+<p>Source code revision  (SVN revision number or Git commit hash)</p>
+</li>
+</ul>
+</div>
+</p>
+                        <p class="text-right">
+                            <a href="/2014/04/jenkins-build-info-maven-artifacts.html" class="btn btn-info btn-xs" role="button">Continue reading <span class="glyphicon glyphicon-share-alt"></span></a>
+                        </p>
+                        </div></div>
+
+
+                      </div> 
+                    </div> 
+	
+	<hr />
+	
+	<p>View all posts in the <a href="/archive.html">archive</a>.</p>
+
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/js/jquery-1.9.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/run_prettify.js"></script>
+    
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>

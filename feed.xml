@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>JBake</title>
+    <link>http://akeffalas.github.io/blog</link>
+    <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <description>JBake Bootstrap Template</description>
+    <language>en-gb</language>
+    <pubDate>Sun, 6 Apr 2014 23:11:07 -0400</pubDate>
+    <lastBuildDate>Sun, 6 Apr 2014 23:11:07 -0400</lastBuildDate>
+
+    <item>
+      <title>Associate Jenkins Build Info with Maven Artifacts</title>
+      <link>http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html</link>
+      <pubDate>Sun, 6 Apr 2014 00:00:00 -0400</pubDate>
+      <guid isPermaLink="false">/2014/04/jenkins-build-info-maven-artifacts.html</guid>
+      	<description>
+	&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;How many times have you tried to debug a problem with one of your components in production without knowing which revision of the codebase has been deployed?  Many times the Maven artifact version number isn&amp;#8217;t sufficient.  Sure, you know the release version of a certain JAR file (1.0.1000 for example), but how do you know if this contains a specific source code commit?  Not to mention debugging during development when your artifact versions are typically *-SNAPSHOT; that&amp;#8217;s not very useful at all.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We&amp;#8217;re going to configure a poor man&amp;#8217;s configuration management scheme to incorporate more information with your build artifacts.  Let&amp;#8217;s assume that you have a continuous integration server setup to build your project&amp;#8217;s artifacts.  Here are some pieces of information that would be useful to bundle with a JAR, WAR, etc.:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Build time&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Build number&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Source code revision  (SVN revision number or Git commit hash)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--continue--&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For this article, it is assumed that your CI server is running &lt;a href=&quot;http://jenkins-ci.org&quot;&gt;Jenkins&lt;/a&gt; and that you are using &lt;a href=&quot;http://git-scm.com/&quot;&gt;git&lt;/a&gt; for source code management.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;So, how can you get this build information from Jenkins? Thankfully, there are a number of &lt;a href=&quot;https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables&quot;&gt;environment variables&lt;/a&gt; that Jenkins exposes by default.  The &lt;a href=&quot;https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin&quot;&gt;Jenkins git plugin&lt;/a&gt; will provide the git-specific variables.  Here are the variables that we&amp;#8217;ll be using:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;BUILD_NUMBER&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;GIT_COMMIT&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_maven_project_configuration&quot;&gt;Maven Project Configuration&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now that we know how to get the data from Jenkins, we need a way to inject it into our build.  This can be achieved by writing the information to an artifact&amp;#8217;s MANIFEST.MF file.  We can use Maven&amp;#8217;s JAR plugin to perform &lt;a href=&quot;http://maven.apache.org/plugins/maven-jar-plugin/examples/manifest-customization.html&quot;&gt;manifest customization&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;In the Maven project&amp;#8217;s POM file we&amp;#8217;ll add a few properties that can be used to inject the build details:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;pom.xml&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums xml language-xml&quot;&gt;&lt;code&gt;&amp;lt;properties&amp;gt;
+    &amp;lt;build.manifest.section&amp;gt;Build Details&amp;lt;/build.manifest.section&amp;gt;
+    &amp;lt;build.unknown&amp;gt;UNKNOWN&amp;lt;/build.unknown&amp;gt;
+    &amp;lt;build.number&amp;gt;${build.unknown}&amp;lt;/build.number&amp;gt;
+    &amp;lt;build.revision&amp;gt;${build.unknown}&amp;lt;/build.revision&amp;gt;
+&amp;lt;/properties&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_manifest_customization&quot;&gt;Manifest Customization&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s go ahead and customize the manifest for our Maven project&amp;#8217;s JAR artifact:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;pom.xml&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums xml language-xml&quot;&gt;&lt;code&gt;&amp;lt;plugins&amp;gt;
+    &amp;lt;plugin&amp;gt;
+        &amp;lt;groupId&amp;gt;org.apache.maven.plugins&amp;lt;/groupId&amp;gt;
+        &amp;lt;artifactId&amp;gt;maven-assembly-plugin&amp;lt;/artifactId&amp;gt;
+        &amp;lt;version&amp;gt;2.4&amp;lt;/version&amp;gt;
+        &amp;lt;configuration&amp;gt;
+            &amp;lt;archive&amp;gt;
+                &amp;lt;manifest&amp;gt;
+                    &amp;lt;addClasspath&amp;gt;true&amp;lt;/addClasspath&amp;gt;
+                &amp;lt;/manifest&amp;gt;
+                &amp;lt;manifestEntries&amp;gt;
+                    &amp;lt;Build-Time&amp;gt;${maven.build.timestamp}&amp;lt;/Build-Time&amp;gt;  &lt;b&gt;(1)&lt;/b&gt;
+                &amp;lt;/manifestEntries&amp;gt;
+                &amp;lt;manifestSections&amp;gt;
+                    &amp;lt;manifestSection&amp;gt;
+                        &amp;lt;name&amp;gt;${build.manifest.section}&amp;lt;/name&amp;gt;
+                        &amp;lt;manifestEntries&amp;gt;
+                            &amp;lt;Implementation-Title&amp;gt;${project.name}&amp;lt;/Implementation-Title&amp;gt;
+                            &amp;lt;Implementation-Version&amp;gt;${project.version}&amp;lt;/Implementation-Version&amp;gt;
+                            &amp;lt;Implementation-Build-Number&amp;gt;${build.number}&amp;lt;/Implementation-Build-Number&amp;gt;
+                            &amp;lt;Implementation-SCM-Revision&amp;gt;${build.revision}&amp;lt;/Implementation-SCM-Revision&amp;gt;
+                        &amp;lt;/manifestEntries&amp;gt;
+                    &amp;lt;/manifestSection&amp;gt;
+                &amp;lt;/manifestSections&amp;gt;
+            &amp;lt;/archive&amp;gt;
+        &amp;lt;/configuration&amp;gt;
+    &amp;lt;/plugin&amp;gt;
+&amp;lt;/plugins&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Maven&amp;#8217;s built-in build timestamp property&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;With this configuration, the MANIFEST.MF file will contain the classpath and other default manifest entries along with the added &lt;code&gt;Build-Time&lt;/code&gt; entry.  A new manifest section has been added to separate the Jenkins build details from other manifest entries.  This section will contain the Jenkins job&amp;#8217;s build number and the git commit hash.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;By default, the artifact&amp;#8217;s build number and source code revision will be set to &lt;strong&gt;UNKNOWN&lt;/strong&gt; unless their respective properties are assigned.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_jenkins_build_info_injection&quot;&gt;Jenkins Build Info Injection&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To assign these properties, go into the Jenkins job&amp;#8217;s configuration and modify the Maven Build&amp;#8217;s &quot;Goals and options&quot; to: &lt;code&gt;clean install -Dbuild.number=${BUILD_NUMBER} -Dbuild.revision=${GIT_COMMIT}&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Save the job configuration and execute a new build.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_resulting_embedded_manifest&quot;&gt;Resulting Embedded Manifest&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Upon build completion, the JAR file that has been created will now have a MANIFEST.MF file that contains the following entries:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;MANIFEST.MF&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint&quot;&gt;&lt;code&gt;Manifest-Version: 1.0
+Built-By: jenkins
+Build-Jdk: 1.7.0_49
+Created-By: Apache Maven
+Build-Time: 2014-04-05 18:53:13
+
+Build Details
+
+Implementation-Title: &amp;lt;project_name&amp;gt;
+Implementation-Version: &amp;lt;project_version&amp;gt;
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now that this information is bundled with the JAR file you can easily determine if this artifact contains the code commit that you&amp;#8217;re looking for by consulting your git repository and/or the build log from your Jenkins job.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;No more guessing about what is and is not in the component that you&amp;#8217;re debugging.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	</description>
+    </item>
+
+  </channel> 
+</rss>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt - Associate Jenkins Build Info with Maven Artifacts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="favicon.ico?v=2" />
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/tags/java.html">Java</a></li>
+                <li><a href="/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+	
+	<div class="page-header">
+	    <h1>Associate Jenkins Build Info with Maven Artifacts</h1>
+
+            <p class="text-left text-muted">
+                <i class="fa fa-calendar"></i> <small>Sunday, April 06, 2014</small>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/2014/04/jenkins-build-info-maven-artifacts.html#disqus_thread">Comments</a>
+            </p>
+
+            <span class="glyphicon glyphicon-tag"></span>
+                  <a href="/tags/jenkins.html"><span class="label label-primary">jenkins</span></a>
+                  <a href="/tags/maven.html"><span class="label label-primary">maven</span></a>
+                  <a href="/tags/java.html"><span class="label label-primary">java</span></a>
+                  <a href="/tags/git.html"><span class="label label-primary">git</span></a>
+        </div> 
+
+	<p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>How many times have you tried to debug a problem with one of your components in production without knowing which revision of the codebase has been deployed?  Many times the Maven artifact version number isn&#8217;t sufficient.  Sure, you know the release version of a certain JAR file (1.0.1000 for example), but how do you know if this contains a specific source code commit?  Not to mention debugging during development when your artifact versions are typically *-SNAPSHOT; that&#8217;s not very useful at all.</p>
+</div>
+<div class="paragraph">
+<p>We&#8217;re going to configure a poor man&#8217;s configuration management scheme to incorporate more information with your build artifacts.  Let&#8217;s assume that you have a continuous integration server setup to build your project&#8217;s artifacts.  Here are some pieces of information that would be useful to bundle with a JAR, WAR, etc.:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Build time</p>
+</li>
+<li>
+<p>Build number</p>
+</li>
+<li>
+<p>Source code revision  (SVN revision number or Git commit hash)</p>
+</li>
+</ul>
+</div>
+<!--continue-->
+<div class="paragraph">
+<p>For this article, it is assumed that your CI server is running <a href="http://jenkins-ci.org">Jenkins</a> and that you are using <a href="http://git-scm.com/">git</a> for source code management.</p>
+</div>
+<div class="paragraph">
+<p>So, how can you get this build information from Jenkins? Thankfully, there are a number of <a href="https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables">environment variables</a> that Jenkins exposes by default.  The <a href="https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin">Jenkins git plugin</a> will provide the git-specific variables.  Here are the variables that we&#8217;ll be using:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>BUILD_NUMBER</p>
+</li>
+<li>
+<p>GIT_COMMIT</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_maven_project_configuration">Maven Project Configuration</h3>
+<div class="paragraph">
+<p>Now that we know how to get the data from Jenkins, we need a way to inject it into our build.  This can be achieved by writing the information to an artifact&#8217;s MANIFEST.MF file.  We can use Maven&#8217;s JAR plugin to perform <a href="http://maven.apache.org/plugins/maven-jar-plugin/examples/manifest-customization.html">manifest customization</a>.</p>
+</div>
+<div class="paragraph">
+<p>In the Maven project&#8217;s POM file we&#8217;ll add a few properties that can be used to inject the build details:</p>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="prettyprint linenums xml language-xml"><code>&lt;properties&gt;
+    &lt;build.manifest.section&gt;Build Details&lt;/build.manifest.section&gt;
+    &lt;build.unknown&gt;UNKNOWN&lt;/build.unknown&gt;
+    &lt;build.number&gt;${build.unknown}&lt;/build.number&gt;
+    &lt;build.revision&gt;${build.unknown}&lt;/build.revision&gt;
+&lt;/properties&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manifest_customization">Manifest Customization</h3>
+<div class="paragraph">
+<p>Let&#8217;s go ahead and customize the manifest for our Maven project&#8217;s JAR artifact:</p>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="prettyprint linenums xml language-xml"><code>&lt;plugins&gt;
+    &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.4&lt;/version&gt;
+        &lt;configuration&gt;
+            &lt;archive&gt;
+                &lt;manifest&gt;
+                    &lt;addClasspath&gt;true&lt;/addClasspath&gt;
+                &lt;/manifest&gt;
+                &lt;manifestEntries&gt;
+                    &lt;Build-Time&gt;${maven.build.timestamp}&lt;/Build-Time&gt;  <b>(1)</b>
+                &lt;/manifestEntries&gt;
+                &lt;manifestSections&gt;
+                    &lt;manifestSection&gt;
+                        &lt;name&gt;${build.manifest.section}&lt;/name&gt;
+                        &lt;manifestEntries&gt;
+                            &lt;Implementation-Title&gt;${project.name}&lt;/Implementation-Title&gt;
+                            &lt;Implementation-Version&gt;${project.version}&lt;/Implementation-Version&gt;
+                            &lt;Implementation-Build-Number&gt;${build.number}&lt;/Implementation-Build-Number&gt;
+                            &lt;Implementation-SCM-Revision&gt;${build.revision}&lt;/Implementation-SCM-Revision&gt;
+                        &lt;/manifestEntries&gt;
+                    &lt;/manifestSection&gt;
+                &lt;/manifestSections&gt;
+            &lt;/archive&gt;
+        &lt;/configuration&gt;
+    &lt;/plugin&gt;
+&lt;/plugins&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Maven&#8217;s built-in build timestamp property</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>With this configuration, the MANIFEST.MF file will contain the classpath and other default manifest entries along with the added <code>Build-Time</code> entry.  A new manifest section has been added to separate the Jenkins build details from other manifest entries.  This section will contain the Jenkins job&#8217;s build number and the git commit hash.</p>
+</div>
+<div class="paragraph">
+<p>By default, the artifact&#8217;s build number and source code revision will be set to <strong>UNKNOWN</strong> unless their respective properties are assigned.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jenkins_build_info_injection">Jenkins Build Info Injection</h3>
+<div class="paragraph">
+<p>To assign these properties, go into the Jenkins job&#8217;s configuration and modify the Maven Build&#8217;s "Goals and options" to: <code>clean install -Dbuild.number=${BUILD_NUMBER} -Dbuild.revision=${GIT_COMMIT}</code></p>
+</div>
+<div class="paragraph">
+<p>Save the job configuration and execute a new build.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_resulting_embedded_manifest">Resulting Embedded Manifest</h3>
+<div class="paragraph">
+<p>Upon build completion, the JAR file that has been created will now have a MANIFEST.MF file that contains the following entries:</p>
+</div>
+<div class="listingblock">
+<div class="title">MANIFEST.MF</div>
+<div class="content">
+<pre class="prettyprint"><code>Manifest-Version: 1.0
+Built-By: jenkins
+Build-Jdk: 1.7.0_49
+Created-By: Apache Maven
+Build-Time: 2014-04-05 18:53:13
+
+Build Details
+
+Implementation-Title: &lt;project_name&gt;
+Implementation-Version: &lt;project_version&gt;
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that this information is bundled with the JAR file you can easily determine if this artifact contains the code commit that you&#8217;re looking for by consulting your git repository and/or the build log from your Jenkins job.</p>
+</div>
+<div class="paragraph">
+<p>No more guessing about what is and is not in the component that you&#8217;re debugging.</p>
+</div>
+</div></p>
+
+        <br>
+
+        <div class="fb-like" data-href="/2014/04/jenkins-build-info-maven-artifacts.html" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+
+
+        <div class="g-plusone" data-size="medium" data-href="/2014/04/jenkins-build-info-maven-artifacts.html"></div>
+
+
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/2014/04/jenkins-build-info-maven-artifacts.html" data-via="akeffalas" data-lang="en">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+        <hr>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_shortname = 'programmerstoolbelt'; // required: replace example with your forum shortname
+
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+	
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/js/jquery-1.9.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/run_prettify.js"></script>
+    
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>
