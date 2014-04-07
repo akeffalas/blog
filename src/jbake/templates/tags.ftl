@@ -50,7 +50,7 @@
 	    <div class="list-group">
 	</#if>
 		
-        <a href="/${config.site_context}${post.uri}" class="list-group-item">${post.title}</a>
+        <a href="${config.site_context}${post.uri}" class="list-group-item">${post.title}</a>
         <#assign last_month = post.date?string("MMMM")>
         <#assign last_year = post.date?string("yyyy")>
         </#list>

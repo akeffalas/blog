@@ -16,19 +16,19 @@
 
                     <div class="panel panel-info">
                       <div class="panel-heading">                        
-                        <i class="fa fa-lg panel-title"><a href="/${config.site_context}${post.uri}" class="blogpost-title"><#escape x as x?xml>${post.title}</#escape></a></i>
+                        <i class="fa fa-lg panel-title"><a href="${config.site_context}${post.uri}" class="blogpost-title"><#escape x as x?xml>${post.title}</#escape></a></i>
                       </div>
 
                       <div class="panel-body">
                         <p class="text-left text-muted">
                           <i class="fa fa-calendar"></i> <small>${post.date?string("EEEE, MMMM dd, yyyy")}</small>
-                          &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/${config.site_context}${post.uri}#disqus_thread">Comments</a>
+                          &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="${config.site_context}${post.uri}#disqus_thread">Comments</a>
                         </p>
 
                     <span class="glyphicon glyphicon-tag"></span>
                     <#list post.tags as contenttag>
                     <#assign tag = "${contenttag?trim}">
-                      <a href="/${config.site_context}/tags/${tag}.html"><span class="label label-primary">${tag}</span></a>
+                      <a href="${config.site_context}/tags/${tag}.html"><span class="label label-primary">${tag}</span></a>
                     </#list>
                     <hr>
                    
@@ -37,7 +37,7 @@
                     <#else>
                         <p>${post.body?substring(0, postBodyMax)}</p>
                         <p class="text-right">
-                            <a href="/${config.site_context}${post.uri}" class="btn btn-info btn-xs" role="button">Continue reading <span class="glyphicon glyphicon-share-alt"></span></a>
+                            <a href="${config.site_context}${post.uri}" class="btn btn-info btn-xs" role="button">Continue reading <span class="glyphicon glyphicon-share-alt"></span></a>
                         </p>
                         <#-- close open divs due to 'continue reader' -->
                         </div></div>
@@ -53,6 +53,6 @@
 	
 	<hr />
 	
-	<p>View all posts in the <a href="/${config.site_context}/${config.archive_file}">archive</a>.</p>
+	<p>View all posts in the <a href="${config.site_context}/${config.archive_file}">archive</a>.</p>
 
 <#include "footer.ftl">
