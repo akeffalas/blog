@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>JBake</title>
+    <title>The Programmer's Tool Belt</title>
     <link>http://akeffalas.github.io/blog</link>
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
-    <description>JBake Bootstrap Template</description>
+    <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 6 Apr 2014 23:57:13 -0400</pubDate>
-    <lastBuildDate>Sun, 6 Apr 2014 23:57:13 -0400</lastBuildDate>
+    <pubDate>Mon, 7 Apr 2014 00:59:33 -0400</pubDate>
+    <lastBuildDate>Mon, 7 Apr 2014 00:59:33 -0400</lastBuildDate>
 
     <item>
       <title>Associate Jenkins Build Info with Maven Artifacts</title>
