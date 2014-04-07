@@ -6,8 +6,8 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>JBake Bootstrap Template</description>
     <language>en-gb</language>
-    <pubDate>Sun, 6 Apr 2014 23:40:08 -0400</pubDate>
-    <lastBuildDate>Sun, 6 Apr 2014 23:40:08 -0400</lastBuildDate>
+    <pubDate>Sun, 6 Apr 2014 23:47:21 -0400</pubDate>
+    <lastBuildDate>Sun, 6 Apr 2014 23:47:21 -0400</lastBuildDate>
 
     <item>
       <title>Associate Jenkins Build Info with Maven Artifacts</title>
