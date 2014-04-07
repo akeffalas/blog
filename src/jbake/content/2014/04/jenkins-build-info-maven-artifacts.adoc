@@ -1,0 +1,129 @@
+= Associate Jenkins Build Info with Maven Artifacts
+akeffalas
+2014-04-06
+:jbake-type: post
+:jbake-tags: jenkins,maven,java,git
+:jbake-status: published
+:source-highlighter: prettify
+:id: jenkins_build_info_maven
+:custom_manifest: http://maven.apache.org/plugins/maven-jar-plugin/examples/manifest-customization.html[manifest customization]
+:jenkins: http://jenkins-ci.org[Jenkins]
+:git: http://git-scm.com/[git]
+:jenkins_vars: https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables[environment variables]
+:jenkins_git: https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin[Jenkins git plugin]
+
+How many times have you tried to debug a problem with one of your components in production without knowing which revision of the codebase has been deployed?  Many times the Maven artifact version number isn't sufficient.  Sure, you know the release version of a certain JAR file (1.0.1000 for example), but how do you know if this contains a specific source code commit?  Not to mention debugging during development when your artifact versions are typically *-SNAPSHOT; that's not very useful at all.
+
+
+We're going to configure a poor man's configuration management scheme to incorporate more information with your build artifacts.  Let's assume that you have a continuous integration server setup to build your project's artifacts.  Here are some pieces of information that would be useful to bundle with a JAR, WAR, etc.:
+
+* Build time
+* Build number
+* Source code revision  (SVN revision number or Git commit hash)  
+
+++++
+<!--continue-->
+++++
+
+For this article, it is assumed that your CI server is running {jenkins} and that you are using {git} for source code management.
+
+So, how can you get this build information from Jenkins? Thankfully, there are a number of {jenkins_vars} that Jenkins exposes by default.  The {jenkins_git} will provide the git-specific variables.  Here are the variables that we'll be using:
+
+* BUILD_NUMBER
+* GIT_COMMIT
+
+
+=== Maven Project Configuration ===
+
+Now that we know how to get the data from Jenkins, we need a way to inject it into our build.  This can be achieved by writing the information to an artifact's MANIFEST.MF file.  We can use Maven's JAR plugin to perform {custom_manifest}.
+
+In the Maven project's POM file we'll add a few properties that can be used to inject the build details:
+
+.pom.xml
+[source,xml,numbered]
+----
+<properties>
+    <build.manifest.section>Build Details</build.manifest.section>
+    <build.unknown>UNKNOWN</build.unknown>
+    <build.number>${build.unknown}</build.number>
+    <build.revision>${build.unknown}</build.revision>
+</properties>
+----
+
+
+=== Manifest Customization ===
+
+Let's go ahead and customize the manifest for our Maven project's JAR artifact:
+
+.pom.xml
+[source,xml,numbered]
+----
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+            <archive>
+                <manifest>
+                    <addClasspath>true</addClasspath>
+                </manifest>
+                <manifestEntries>
+                    <Build-Time>${maven.build.timestamp}</Build-Time>  <1>
+                </manifestEntries>
+                <manifestSections>
+                    <manifestSection>
+                        <name>${build.manifest.section}</name>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Build-Number>${build.number}</Implementation-Build-Number>
+                            <Implementation-SCM-Revision>${build.revision}</Implementation-SCM-Revision>
+                        </manifestEntries>
+                    </manifestSection>
+                </manifestSections>
+            </archive>
+        </configuration>
+    </plugin>
+</plugins>
+----
+<1> Maven's built-in build timestamp property
+
+With this configuration, the MANIFEST.MF file will contain the classpath and other default manifest entries along with the added +Build-Time+ entry.  A new manifest section has been added to separate the Jenkins build details from other manifest entries.  This section will contain the Jenkins job's build number and the git commit hash.
+
+By default, the artifact's build number and source code revision will be set to *UNKNOWN* unless their respective properties are assigned.
+
+
+=== Jenkins Build Info Injection ===
+
+To assign these properties, go into the Jenkins job's configuration and modify the Maven Build's "Goals and options" to: `clean install -Dbuild.number=${BUILD_NUMBER} -Dbuild.revision=${GIT_COMMIT}`
+
+Save the job configuration and execute a new build.  
+
+
+=== Resulting Embedded Manifest ===
+
+Upon build completion, the JAR file that has been created will now have a MANIFEST.MF file that contains the following entries:
+
+.MANIFEST.MF
+[source]
+----
+Manifest-Version: 1.0
+Built-By: jenkins
+Build-Jdk: 1.7.0_49
+Created-By: Apache Maven
+Build-Time: 2014-04-05 18:53:13
+
+Build Details
+
+Implementation-Title: <project_name>
+Implementation-Version: <project_version>
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567
+----
+
+Now that this information is bundled with the JAR file you can easily determine if this artifact contains the code commit that you're looking for by consulting your git repository and/or the build log from your Jenkins job.  
+
+No more guessing about what is and is not in the component that you're debugging.
+
+
