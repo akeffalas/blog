@@ -6,6 +6,7 @@ akeffalas
 :jbake-status: published
 :source-highlighter: prettify
 :id: jenkins_build_info_maven
+:icons: font
 :custom_manifest: http://maven.apache.org/plugins/maven-jar-plugin/examples/manifest-customization.html[manifest customization]
 :jenkins: http://jenkins-ci.org[Jenkins]
 :git: http://git-scm.com/[git]

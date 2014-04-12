@@ -6,6 +6,7 @@ akeffalas
 :jbake-status: published
 :source-highlighter: prettify
 :id: jenkins_build_info_grails
+:icons: font
 :jenkins: http://jenkins-ci.org[Jenkins]
 :git: http://git-scm.com/[git]
 :jenkins-maven-blog: http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html[discussed]
