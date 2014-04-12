@@ -14,6 +14,8 @@
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="${config.site_context}/tags/java.html">Java</a></li>
+                <li><a href="${config.site_context}/tags/groovy.html">Groovy</a></li>
+                <li><a href="${config.site_context}/tags/grails.html">Grails</a></li>
                 <li><a href="${config.site_context}/tags/maven.html">Maven</a></li>
               </ul>
             </li>
