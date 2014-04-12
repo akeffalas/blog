@@ -6,9 +6,154 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Mon, 7 Apr 2014 00:59:33 -0400</pubDate>
-    <lastBuildDate>Mon, 7 Apr 2014 00:59:33 -0400</lastBuildDate>
+    <pubDate>Fri, 11 Apr 2014 22:13:18 -0400</pubDate>
+    <lastBuildDate>Fri, 11 Apr 2014 22:13:18 -0400</lastBuildDate>
 
+    <item>
+      <title>Include Jenkins Build Info With a Grails WAR File</title>
+      <link>http://akeffalas.github.io/blog/2014/04/jenkins-build-info-grails-war.html</link>
+      <pubDate>Fri, 11 Apr 2014 00:00:00 -0400</pubDate>
+      <guid isPermaLink="false">/2014/04/jenkins-build-info-grails-war.html</guid>
+      	<description>
+	&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Are you looking for a way to associate your continuous integration server&amp;#8217;s build information with your web application?  I&amp;#8217;ve already &lt;a href=&quot;http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html&quot;&gt;discussed&lt;/a&gt; how to easily inject the properties from a Jenkins build job into your Maven artifacts.  Let&amp;#8217;s see how a similar approach can be used for a packaged Grails WAR file.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I&amp;#8217;ll assume that you have access to the following Jenkins job&amp;#8217;s &lt;a href=&quot;https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables&quot;&gt;environment variables&lt;/a&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;BUILD_NUMBER&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;GIT_COMMIT&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--continue--&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Using this build information, you&amp;#8217;ll be able to add the following details to the &lt;code&gt;MANIFEST.MF&lt;/code&gt; file of a Grails web archive file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Build time&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Build number&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Source code revision (SVN revision number or Git commit hash)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_grails_event_configuration&quot;&gt;Grails Event Configuration&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The simplest way to add entries and attributes to the archive&amp;#8217;s manifest file is to inject build properties during the war creation phase.  Grails exposes this capability via the &lt;strong&gt;eventCreateWarStart&lt;/strong&gt; event.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Create a &lt;code&gt;_Events.groovy&lt;/code&gt; file inside of your Grails application&amp;#8217;s &lt;code&gt;scripts&lt;/code&gt; directory.  This script file will run during a &lt;code&gt;grails war&lt;/code&gt; (or &lt;code&gt;mvn package&lt;/code&gt; if using the &lt;a href=&quot;https://github.com/grails/grails-maven&quot;&gt;Grails Maven plugin&lt;/a&gt;) command-line invocation.  The war creation event notification will fire and the closure defined by &lt;code&gt;eventCreateWarStart&lt;/code&gt; will execute.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;_Events.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums groovy language-groovy&quot;&gt;&lt;code&gt;eventCreateWarStart = { warName, stagingDir -&amp;gt;
+    def unknownValue = &apos;UNKNOWN&apos;
+
+    def buildNumberEnvironment = &apos;BUILD_NUMBER&apos;
+    def scmRevisionEnvironment = &apos;GIT_COMMIT&apos;
+
+    def buildNumberProperty = &apos;build.number&apos;
+    def scmRevisionProperty = &apos;build.revision&apos;
+
+    def buildNumber = System.getenv(buildNumberEnvironment)     &lt;b&gt;(1)&lt;/b&gt;
+
+    if( !buildNumber ) {        &lt;b&gt;(2)&lt;/b&gt;
+        buildNumber = System.getProperty(buildNumberProperty, unknownValue)
+    }
+
+
+    def scmRevision = System.getenv(scmRevisionEnvironment)
+
+    if( !scmRevision ) {
+        scmRevision = System.getProperty(scmRevisionProperty, unknownValue)
+    }
+
+
+    ant.propertyfile(file:&quot;${stagingDir}/WEB-INF/classes/application.properties&quot;) {
+        entry(key:&apos;app.version.buildNumber&apos;, value: buildNumber)        &lt;b&gt;(3)&lt;/b&gt;
+    }
+
+    ant.manifest(file: &quot;${stagingDir}/META-INF/MANIFEST.MF&quot;, mode: &quot;update&quot;) {
+        attribute(name: &quot;Build-Time&quot;, value: new Date())        &lt;b&gt;(4)&lt;/b&gt;
+
+        section(name: &quot;Grails Application&quot;) {       &lt;b&gt;(5)&lt;/b&gt;
+            attribute(name: &quot;Implementation-Build-Number&quot;, value: buildNumber)
+            attribute(name: &quot;Implementation-SCM-Revision&quot;, value: scmRevision)
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Try to get the build number from an environment variable (Jenkins job)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Otherwise, check for a system property (this allows for overriding via the command-line)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add the build number to the application.properties file for usage in the application&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add the build time to the manifest&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add a manifest entry with the build info attributes&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_results&quot;&gt;Results&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Upon build completion, the WAR file that has been created will now have a &lt;code&gt;MANIFEST.MF&lt;/code&gt; file that contains the following entries:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;MANIFEST.MF&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint&quot;&gt;&lt;code&gt;Build Details
+
+Build-Time: 2014-04-11 14:22:13
+
+Grails Application
+
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Additionally, the build number will also be added to the application&amp;#8217;s properties file which allows for easy injection into a Grails GSP file.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;application.properties&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint&quot;&gt;&lt;code&gt;app.version.buildNumber=742&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This information will help you determine which version of the web application is running which can be quite handy during debugging or for production deployment.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	</description>
+    </item>
     <item>
       <title>Associate Jenkins Build Info with Maven Artifacts</title>
       <link>http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html</link>

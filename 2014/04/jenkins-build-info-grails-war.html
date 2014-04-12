@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt - Include Jenkins Build Info With a Grails WAR File</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/blog/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/blog/css/asciidoctor.css" rel="stylesheet">
+    <link href="/blog/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/blog/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="favicon.ico?v=2" />
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/blog/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/blog/tags/java.html">Java</a></li>
+                <li><a href="/blog/tags/groovy.html">Groovy</a></li>
+                <li><a href="/blog/tags/grails.html">Grails</a></li>
+                <li><a href="/blog/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/blog/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/blog/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/blog/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+	
+	<div class="page-header">
+	    <h1>Include Jenkins Build Info With a Grails WAR File</h1>
+
+            <p class="text-left text-muted">
+                <i class="fa fa-calendar"></i> <small>Friday, April 11, 2014</small>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/blog/2014/04/jenkins-build-info-grails-war.html#disqus_thread">Comments</a>
+            </p>
+
+            <span class="glyphicon glyphicon-tag"></span>
+                  <a href="/blog/tags/jenkins.html"><span class="label label-primary">jenkins</span></a>
+                  <a href="/blog/tags/grails.html"><span class="label label-primary">grails</span></a>
+                  <a href="/blog/tags/groovy.html"><span class="label label-primary">groovy</span></a>
+                  <a href="/blog/tags/git.html"><span class="label label-primary">git</span></a>
+        </div> 
+
+	<p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Are you looking for a way to associate your continuous integration server&#8217;s build information with your web application?  I&#8217;ve already <a href="http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html">discussed</a> how to easily inject the properties from a Jenkins build job into your Maven artifacts.  Let&#8217;s see how a similar approach can be used for a packaged Grails WAR file.</p>
+</div>
+<div class="paragraph">
+<p>I&#8217;ll assume that you have access to the following Jenkins job&#8217;s <a href="https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables">environment variables</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>BUILD_NUMBER</p>
+</li>
+<li>
+<p>GIT_COMMIT</p>
+</li>
+</ul>
+</div>
+<!--continue-->
+<div class="paragraph">
+<p>Using this build information, you&#8217;ll be able to add the following details to the <code>MANIFEST.MF</code> file of a Grails web archive file:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Build time</p>
+</li>
+<li>
+<p>Build number</p>
+</li>
+<li>
+<p>Source code revision (SVN revision number or Git commit hash)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_grails_event_configuration">Grails Event Configuration</h3>
+<div class="paragraph">
+<p>The simplest way to add entries and attributes to the archive&#8217;s manifest file is to inject build properties during the war creation phase.  Grails exposes this capability via the <strong>eventCreateWarStart</strong> event.</p>
+</div>
+<div class="paragraph">
+<p>Create a <code>_Events.groovy</code> file inside of your Grails application&#8217;s <code>scripts</code> directory.  This script file will run during a <code>grails war</code> (or <code>mvn package</code> if using the <a href="https://github.com/grails/grails-maven">Grails Maven plugin</a>) command-line invocation.  The war creation event notification will fire and the closure defined by <code>eventCreateWarStart</code> will execute.</p>
+</div>
+<div class="listingblock">
+<div class="title">_Events.groovy</div>
+<div class="content">
+<pre class="prettyprint linenums groovy language-groovy"><code>eventCreateWarStart = { warName, stagingDir -&gt;
+    def unknownValue = 'UNKNOWN'
+
+    def buildNumberEnvironment = 'BUILD_NUMBER'
+    def scmRevisionEnvironment = 'GIT_COMMIT'
+
+    def buildNumberProperty = 'build.number'
+    def scmRevisionProperty = 'build.revision'
+
+    def buildNumber = System.getenv(buildNumberEnvironment)     <b>(1)</b>
+
+    if( !buildNumber ) {        <b>(2)</b>
+        buildNumber = System.getProperty(buildNumberProperty, unknownValue)
+    }
+
+
+    def scmRevision = System.getenv(scmRevisionEnvironment)
+
+    if( !scmRevision ) {
+        scmRevision = System.getProperty(scmRevisionProperty, unknownValue)
+    }
+
+
+    ant.propertyfile(file:"${stagingDir}/WEB-INF/classes/application.properties") {
+        entry(key:'app.version.buildNumber', value: buildNumber)        <b>(3)</b>
+    }
+
+    ant.manifest(file: "${stagingDir}/META-INF/MANIFEST.MF", mode: "update") {
+        attribute(name: "Build-Time", value: new Date())        <b>(4)</b>
+
+        section(name: "Grails Application") {       <b>(5)</b>
+            attribute(name: "Implementation-Build-Number", value: buildNumber)
+            attribute(name: "Implementation-SCM-Revision", value: scmRevision)
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Try to get the build number from an environment variable (Jenkins job)</p>
+</li>
+<li>
+<p>Otherwise, check for a system property (this allows for overriding via the command-line)</p>
+</li>
+<li>
+<p>Add the build number to the application.properties file for usage in the application</p>
+</li>
+<li>
+<p>Add the build time to the manifest</p>
+</li>
+<li>
+<p>Add a manifest entry with the build info attributes</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_results">Results</h3>
+<div class="paragraph">
+<p>Upon build completion, the WAR file that has been created will now have a <code>MANIFEST.MF</code> file that contains the following entries:</p>
+</div>
+<div class="listingblock">
+<div class="title">MANIFEST.MF</div>
+<div class="content">
+<pre class="prettyprint"><code>Build Details
+
+Build-Time: 2014-04-11 14:22:13
+
+Grails Application
+
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additionally, the build number will also be added to the application&#8217;s properties file which allows for easy injection into a Grails GSP file.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="prettyprint"><code>app.version.buildNumber=742</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This information will help you determine which version of the web application is running which can be quite handy during debugging or for production deployment.</p>
+</div>
+</div></p>
+
+        <br>
+
+        <div class="fb-like" data-href="/blog/2014/04/jenkins-build-info-grails-war.html" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+
+
+        <div class="g-plusone" data-size="medium" data-href="/blog/2014/04/jenkins-build-info-grails-war.html"></div>
+
+
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/blog/2014/04/jenkins-build-info-grails-war.html" data-via="akeffalas" data-lang="en">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+        <hr>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_shortname = 'programmerstoolbelt'; // required: replace example with your forum shortname
+
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+	
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/blog/js/jquery-1.9.1.min.js"></script>
+    <script src="/blog/js/bootstrap.min.js"></script>
+    <script src="/blog/js/run_prettify.js"></script>
+    
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>
