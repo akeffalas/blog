@@ -168,7 +168,7 @@
                     &lt;addClasspath&gt;true&lt;/addClasspath&gt;
                 &lt;/manifest&gt;
                 &lt;manifestEntries&gt;
-                    &lt;Build-Time&gt;${maven.build.timestamp}&lt;/Build-Time&gt;  <b>(1)</b>
+                    &lt;Build-Time&gt;${maven.build.timestamp}&lt;/Build-Time&gt;  <i class="conum" data-value="1"></i><b>(1)</b>
                 &lt;/manifestEntries&gt;
                 &lt;manifestSections&gt;
                     &lt;manifestSection&gt;
@@ -188,11 +188,12 @@
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>Maven&#8217;s built-in build timestamp property</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Maven&#8217;s built-in build timestamp property</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>With this configuration, the MANIFEST.MF file will contain the classpath and other default manifest entries along with the added <code>Build-Time</code> entry.  A new manifest section has been added to separate the Jenkins build details from other manifest entries.  This section will contain the Jenkins job&#8217;s build number and the git commit hash.</p>

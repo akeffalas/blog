@@ -6,8 +6,8 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 11 Apr 2014 22:18:01 -0400</pubDate>
-    <lastBuildDate>Fri, 11 Apr 2014 22:18:01 -0400</lastBuildDate>
+    <pubDate>Fri, 11 Apr 2014 22:51:58 -0400</pubDate>
+    <lastBuildDate>Fri, 11 Apr 2014 22:51:58 -0400</lastBuildDate>
 
     <item>
       <title>Include Jenkins Build Info With a Grails WAR File</title>
@@ -72,9 +72,9 @@
     def buildNumberProperty = &apos;build.number&apos;
     def scmRevisionProperty = &apos;build.revision&apos;
 
-    def buildNumber = System.getenv(buildNumberEnvironment)     &lt;b&gt;(1)&lt;/b&gt;
+    def buildNumber = System.getenv(buildNumberEnvironment)     &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
 
-    if( !buildNumber ) {        &lt;b&gt;(2)&lt;/b&gt;
+    if( !buildNumber ) {        &lt;i class=&quot;conum&quot; data-value=&quot;2&quot;&gt;&lt;/i&gt;&lt;b&gt;(2)&lt;/b&gt;
         buildNumber = System.getProperty(buildNumberProperty, unknownValue)
     }
 
@@ -87,13 +87,13 @@
 
 
     ant.propertyfile(file:&quot;${stagingDir}/WEB-INF/classes/application.properties&quot;) {
-        entry(key:&apos;app.version.buildNumber&apos;, value: buildNumber)        &lt;b&gt;(3)&lt;/b&gt;
+        entry(key:&apos;app.version.buildNumber&apos;, value: buildNumber)        &lt;i class=&quot;conum&quot; data-value=&quot;3&quot;&gt;&lt;/i&gt;&lt;b&gt;(3)&lt;/b&gt;
     }
 
     ant.manifest(file: &quot;${stagingDir}/META-INF/MANIFEST.MF&quot;, mode: &quot;update&quot;) {
-        attribute(name: &quot;Build-Time&quot;, value: new Date())        &lt;b&gt;(4)&lt;/b&gt;
+        attribute(name: &quot;Build-Time&quot;, value: new Date())        &lt;i class=&quot;conum&quot; data-value=&quot;4&quot;&gt;&lt;/i&gt;&lt;b&gt;(4)&lt;/b&gt;
 
-        section(name: &quot;Grails Application&quot;) {       &lt;b&gt;(5)&lt;/b&gt;
+        section(name: &quot;Grails Application&quot;) {       &lt;i class=&quot;conum&quot; data-value=&quot;5&quot;&gt;&lt;/i&gt;&lt;b&gt;(5)&lt;/b&gt;
             attribute(name: &quot;Implementation-Build-Number&quot;, value: buildNumber)
             attribute(name: &quot;Implementation-SCM-Revision&quot;, value: scmRevision)
         }
@@ -102,23 +102,28 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;colist arabic&quot;&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Try to get the build number from an environment variable (Jenkins job)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Otherwise, check for a system property (this allows for overriding via the command-line)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Add the build number to the application.properties file for usage in the application&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Add the build time to the manifest&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Add a manifest entry with the build info attributes&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Try to get the build number from an environment variable (Jenkins job)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;2&quot;&gt;&lt;/i&gt;&lt;b&gt;2&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Otherwise, check for a system property (this allows for overriding via the command-line)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;3&quot;&gt;&lt;/i&gt;&lt;b&gt;3&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Add the build number to the application.properties file for usage in the application&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;4&quot;&gt;&lt;/i&gt;&lt;b&gt;4&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Add the build time to the manifest&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;5&quot;&gt;&lt;/i&gt;&lt;b&gt;5&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Add a manifest entry with the build info attributes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;sect2&quot;&gt;
@@ -239,7 +244,7 @@ Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567&lt;/code&g
                     &amp;lt;addClasspath&amp;gt;true&amp;lt;/addClasspath&amp;gt;
                 &amp;lt;/manifest&amp;gt;
                 &amp;lt;manifestEntries&amp;gt;
-                    &amp;lt;Build-Time&amp;gt;${maven.build.timestamp}&amp;lt;/Build-Time&amp;gt;  &lt;b&gt;(1)&lt;/b&gt;
+                    &amp;lt;Build-Time&amp;gt;${maven.build.timestamp}&amp;lt;/Build-Time&amp;gt;  &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
                 &amp;lt;/manifestEntries&amp;gt;
                 &amp;lt;manifestSections&amp;gt;
                     &amp;lt;manifestSection&amp;gt;
@@ -259,11 +264,12 @@ Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567&lt;/code&g
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;colist arabic&quot;&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Maven&amp;#8217;s built-in build timestamp property&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Maven&amp;#8217;s built-in build timestamp property&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
 &lt;/div&gt;
 &lt;div class=&quot;paragraph&quot;&gt;
 &lt;p&gt;With this configuration, the MANIFEST.MF file will contain the classpath and other default manifest entries along with the added &lt;code&gt;Build-Time&lt;/code&gt; entry.  A new manifest section has been added to separate the Jenkins build details from other manifest entries.  This section will contain the Jenkins job&amp;#8217;s build number and the git commit hash.&lt;/p&gt;

@@ -146,9 +146,9 @@
     def buildNumberProperty = 'build.number'
     def scmRevisionProperty = 'build.revision'
 
-    def buildNumber = System.getenv(buildNumberEnvironment)     <b>(1)</b>
+    def buildNumber = System.getenv(buildNumberEnvironment)     <i class="conum" data-value="1"></i><b>(1)</b>
 
-    if( !buildNumber ) {        <b>(2)</b>
+    if( !buildNumber ) {        <i class="conum" data-value="2"></i><b>(2)</b>
         buildNumber = System.getProperty(buildNumberProperty, unknownValue)
     }
 
@@ -161,13 +161,13 @@
 
 
     ant.propertyfile(file:"${stagingDir}/WEB-INF/classes/application.properties") {
-        entry(key:'app.version.buildNumber', value: buildNumber)        <b>(3)</b>
+        entry(key:'app.version.buildNumber', value: buildNumber)        <i class="conum" data-value="3"></i><b>(3)</b>
     }
 
     ant.manifest(file: "${stagingDir}/META-INF/MANIFEST.MF", mode: "update") {
-        attribute(name: "Build-Time", value: new Date())        <b>(4)</b>
+        attribute(name: "Build-Time", value: new Date())        <i class="conum" data-value="4"></i><b>(4)</b>
 
-        section(name: "Grails Application") {       <b>(5)</b>
+        section(name: "Grails Application") {       <i class="conum" data-value="5"></i><b>(5)</b>
             attribute(name: "Implementation-Build-Number", value: buildNumber)
             attribute(name: "Implementation-SCM-Revision", value: scmRevision)
         }
@@ -176,23 +176,28 @@
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>Try to get the build number from an environment variable (Jenkins job)</p>
-</li>
-<li>
-<p>Otherwise, check for a system property (this allows for overriding via the command-line)</p>
-</li>
-<li>
-<p>Add the build number to the application.properties file for usage in the application</p>
-</li>
-<li>
-<p>Add the build time to the manifest</p>
-</li>
-<li>
-<p>Add a manifest entry with the build info attributes</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Try to get the build number from an environment variable (Jenkins job)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Otherwise, check for a system property (this allows for overriding via the command-line)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Add the build number to the application.properties file for usage in the application</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Add the build time to the manifest</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Add a manifest entry with the build info attributes</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
