@@ -6,8 +6,8 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 11 Apr 2014 22:13:18 -0400</pubDate>
-    <lastBuildDate>Fri, 11 Apr 2014 22:13:18 -0400</lastBuildDate>
+    <pubDate>Fri, 11 Apr 2014 22:18:01 -0400</pubDate>
+    <lastBuildDate>Fri, 11 Apr 2014 22:18:01 -0400</lastBuildDate>
 
     <item>
       <title>Include Jenkins Build Info With a Grails WAR File</title>
