@@ -1,0 +1,112 @@
+= Include Jenkins Build Info With a Grails WAR File 
+akeffalas
+2014-04-11
+:jbake-type: post
+:jbake-tags: jenkins,grails,groovy,git
+:jbake-status: published
+:source-highlighter: prettify
+:id: jenkins_build_info_grails
+:jenkins: http://jenkins-ci.org[Jenkins]
+:git: http://git-scm.com/[git]
+:jenkins-maven-blog: http://akeffalas.github.io/blog/2014/04/jenkins-build-info-maven-artifacts.html[discussed]
+:jenkins-vars: https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables[environment variables]
+:grails-maven: https://github.com/grails/grails-maven[Grails Maven plugin]
+
+Are you looking for a way to associate your continuous integration server's build information with your web application?  I've already {jenkins-maven-blog} how to easily inject the properties from a Jenkins build job into your Maven artifacts.  Let's see how a similar approach can be used for a packaged Grails WAR file.
+
+I'll assume that you have access to the following Jenkins job's {jenkins-vars}:
+
+* BUILD_NUMBER
+* GIT_COMMIT
+
+++++
+<!--continue-->
+++++
+
+Using this build information, you'll be able to add the following details to the `MANIFEST.MF` file of a Grails web archive file:
+
+* Build time
+* Build number
+* Source code revision (SVN revision number or Git commit hash)
+
+=== Grails Event Configuration ===
+
+The simplest way to add entries and attributes to the archive's manifest file is to inject build properties during the war creation phase.  Grails exposes this capability via the *eventCreateWarStart* event.
+
+Create a `_Events.groovy` file inside of your Grails application's `scripts` directory.  This script file will run during a `grails war` (or `mvn package` if using the {grails-maven}) command-line invocation.  The war creation event notification will fire and the closure defined by +eventCreateWarStart+ will execute.
+
+[source,groovy,numbered]
+._Events.groovy
+----
+eventCreateWarStart = { warName, stagingDir ->
+    def unknownValue = 'UNKNOWN'
+
+    def buildNumberEnvironment = 'BUILD_NUMBER'
+    def scmRevisionEnvironment = 'GIT_COMMIT'
+
+    def buildNumberProperty = 'build.number'
+    def scmRevisionProperty = 'build.revision'
+    
+    def buildNumber = System.getenv(buildNumberEnvironment)     <1>
+    
+    if( !buildNumber ) {        <2>
+        buildNumber = System.getProperty(buildNumberProperty, unknownValue)
+    }
+    
+
+    def scmRevision = System.getenv(scmRevisionEnvironment)
+    
+    if( !scmRevision ) {
+        scmRevision = System.getProperty(scmRevisionProperty, unknownValue)
+    }
+
+
+    ant.propertyfile(file:"${stagingDir}/WEB-INF/classes/application.properties") {
+        entry(key:'app.version.buildNumber', value: buildNumber)        <3>
+    }
+    
+    ant.manifest(file: "${stagingDir}/META-INF/MANIFEST.MF", mode: "update") {
+        attribute(name: "Build-Time", value: new Date())        <4>
+        
+        section(name: "Grails Application") {       <5>
+            attribute(name: "Implementation-Build-Number", value: buildNumber)
+            attribute(name: "Implementation-SCM-Revision", value: scmRevision)
+        }
+    }
+}
+----
+<1> Try to get the build number from an environment variable (Jenkins job)
+<2> Otherwise, check for a system property (this allows for overriding via the command-line)
+<3> Add the build number to the application.properties file for usage in the application
+<4> Add the build time to the manifest
+<5> Add a manifest entry with the build info attributes
+
+=== Results ===
+
+Upon build completion, the WAR file that has been created will now have a +MANIFEST.MF+ file that contains the following entries:
+
+[source]
+.MANIFEST.MF
+----
+Build Details
+
+Build-Time: 2014-04-11 14:22:13
+
+Grails Application
+
+Implementation-Build-Number: 742
+Implementation-SCM-Revision: d0c60c86219ebe6f700b3fc161606325325cc567
+----
+
+
+Additionally, the build number will also be added to the application's properties file which allows for easy injection into a Grails GSP file.
+
+[source]
+.application.properties
+----
+app.version.buildNumber=742
+----
+
+This information will help you determine which version of the web application is running which can be quite handy during debugging or for production deployment.
+
+
