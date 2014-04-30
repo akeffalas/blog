@@ -6,9 +6,277 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 11 Apr 2014 22:51:58 -0400</pubDate>
-    <lastBuildDate>Fri, 11 Apr 2014 22:51:58 -0400</lastBuildDate>
+    <pubDate>Tue, 29 Apr 2014 23:36:19 -0400</pubDate>
+    <lastBuildDate>Tue, 29 Apr 2014 23:36:19 -0400</lastBuildDate>
 
+    <item>
+      <title>Create Immutable Objects with Java</title>
+      <link>http://akeffalas.github.io/blog/2014/04/java-create-immutable-objects.html</link>
+      <pubDate>Tue, 29 Apr 2014 00:00:00 -0400</pubDate>
+      <guid isPermaLink="false">/2014/04/java-create-immutable-objects.html</guid>
+      	<description>
+	&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Have you ever had to endure the &lt;a href=&quot;http://www.osnews.com/images/comics/wtfm.jpg&quot;&gt;agony&lt;/a&gt; of debugging a piece of code that mutates the state of an object several times throughout an application?  Not only is that type of code ugly and unpredictable, it&amp;#8217;s downright dangerous when dealing with multiple threads.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;An immutable object ensures that its internal state cannot be changed after instantiation.  Why does this matter?  This provides an immediate benefit when working with multi-threaded code in that no synchronization needs to be performed since the object does not offer any shared, mutable state between threads.  Therefore, the state of the object remains the same throughout its lifetime which makes the object automatically thread-safe.&lt;/p&gt;
+&lt;/div&gt;
+&lt;!--continue--&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_immutable_object_rules&quot;&gt;Immutable Object Rules&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;There are several simple rules that can be applied to the definition of a Java class to ensure that it allows for the creation of immutable objects:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Make all instance fields private and final&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Eliminate all methods that can mutate state&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Prevent subclasses from subverting immutable behavior&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Avoid storing references to mutable objects&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_making_a_pojo_immutable&quot;&gt;Making a POJO Immutable&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Suppose that we&amp;#8217;d like to make a basic Plain Old Java Object that exhibits immutable behavior.  Let&amp;#8217;s start with the following &lt;strong&gt;Team&lt;/strong&gt; class:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Team.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package immutable;
+
+import java.util.List;
+
+public class Team {
+    private String teamName;
+    private List&amp;lt;String&amp;gt; playerNames;
+
+    public void setTeamName(final String name) {
+        teamName = name;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public void setPlayerNames(final List&amp;lt;String&amp;gt; names) {
+        playerNames = names;
+    }
+
+    public List&amp;lt;String&amp;gt; getPlayerNames() {
+        return playerNames;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;There&amp;#8217;s nothing surprising here, just a simple POJO used to model a team that has a name and a collection of player names.  Right away you should be able to see that the rules for immutability have been violated.  Let&amp;#8217;s transform this lowly POJO into a mighty Immutable Object.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_protect_internal_state&quot;&gt;Protect Internal State&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The first immutability problem with &lt;strong&gt;Team&lt;/strong&gt; is that it allows the object&amp;#8217;s state to be manipulated at any time.  This can easily be fixed by removing all methods that allow for state manipulation and make all fields private and final.  After making these changes all of the information for a &lt;strong&gt;Team&lt;/strong&gt; instance is now required at instantiation time.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Team.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package immutable;
+
+import java.util.List;
+
+public class Team {
+    private final String teamName;
+    private final List&amp;lt;String&amp;gt; playerNames;
+
+    public Team(final String name, final List&amp;lt;String&amp;gt; players) {
+        teamName = name;
+        playerNames = players;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List&amp;lt;String&amp;gt; getPlayerNames() {
+        return playerNames;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_avoid_subverting_immutable_behavior&quot;&gt;Avoid Subverting Immutable Behavior&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The easiest way to ensure that immutable behavior cannot be tampered with by a subclass overriding methods is to mark the class as final to prevent subclassing all together.  Another approach would be to make the class&amp;#8217;s constructor private and require object construction to be done through static factory methods.  Let&amp;#8217;s go ahead and mark &lt;strong&gt;Team&lt;/strong&gt; as final.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_perform_defensive_copies&quot;&gt;Perform Defensive Copies&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Even after performing the previous steps &lt;strong&gt;Team&lt;/strong&gt; is still &lt;u&gt;not&lt;/u&gt; immutable.  How can that be?  A &lt;strong&gt;Team&lt;/strong&gt; instance is constructed with an immutable &lt;strong&gt;String&lt;/strong&gt; instance for the team name, but the player names associated with a &lt;strong&gt;Team&lt;/strong&gt; is stored in a mutable &lt;strong&gt;List&lt;/strong&gt; object reference.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Here&amp;#8217;s how this can be exploited to bypass immutability:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Driver.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;public class Driver {
+    public static void main(final String[] args) {
+    	final String teamName = &quot;My Team&quot;;
+    	final List&amp;lt;String&amp;gt; players = new ArrayList&amp;lt;&amp;gt;();
+    	players.add(&quot;Foo&quot;);
+
+        final Team team = new Team(teamName, players);
+        players.add(&quot;Bar&quot;);
+
+        System.out.println(team.getPlayerNames()); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Outputs both players &quot;Foo&quot; and &quot;Bar&quot;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The problem here is that the &lt;code&gt;players&lt;/code&gt; object reference is created and maintained by the &lt;strong&gt;Driver&lt;/strong&gt; class and the reference is passed by value to the &lt;strong&gt;Team&lt;/strong&gt; instance.  After &lt;strong&gt;Team&lt;/strong&gt; creation, the &lt;code&gt;players&lt;/code&gt; list (which is still an object reference stored within the &lt;strong&gt;Team&lt;/strong&gt; instance) is modified and the call to &lt;code&gt;team.getPlayerNames()&lt;/code&gt; will return the contents of the &lt;code&gt;players&lt;/code&gt; list.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This can be fixed by making a defensive copy of the provided object reference in the &lt;strong&gt;Team&lt;/strong&gt; constructor so that the &lt;strong&gt;Team&lt;/strong&gt; object maintains a copy of the original list of player names.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Team.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;public Team(final String name, final List&amp;lt;String&amp;gt; players) {
+    teamName = name;
+    playerNames = new ArrayList&amp;lt;&amp;gt;(players); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Make a defensive copy of the provided container&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Alright, we&amp;#8217;ve made the defensive copy upon instantiation so &lt;strong&gt;Team&lt;/strong&gt; must be immutable now, right?  Not so fast!  The &lt;code&gt;getPlayerNames()&lt;/code&gt; method from &lt;strong&gt;Team&lt;/strong&gt; is susceptible to modification since it currently returns the object reference to the player name list.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Driver.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;public class Driver {
+    public static void main(final String[] args) {
+        final String teamName = &quot;My Team&quot;;
+        final List&amp;lt;String&amp;gt; players = new ArrayList&amp;lt;&amp;gt;();
+        players.add(&quot;Foo&quot;);
+
+        final Team team = new Team(teamName, players);
+        final List&amp;lt;String&amp;gt; teamPlayers = team.getPlayerNames();
+
+        System.out.println(teamPlayers); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+        teamPlayers.add(&quot;Bar&quot;);
+        System.out.println(team.getPlayerNames()); &lt;i class=&quot;conum&quot; data-value=&quot;2&quot;&gt;&lt;/i&gt;&lt;b&gt;(2)&lt;/b&gt;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Outputs &quot;Foo&quot;, as expected&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;2&quot;&gt;&lt;/i&gt;&lt;b&gt;2&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Outputs &quot;Foo&quot; and &quot;Bar&quot;, uh-oh!&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As you can see, &lt;strong&gt;Team&lt;/strong&gt; is still not immutable because the reference to the players list is returned via &lt;code&gt;getPlayerNames()&lt;/code&gt;.  This reference can be held by the &lt;strong&gt;Driver&lt;/strong&gt; class and mutated which modifies the internal state of a &lt;strong&gt;Team&lt;/strong&gt; instance.  Once again, the fix is to create a defensive copy.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_our_mighty_immutable_object&quot;&gt;Our Mighty Immutable Object&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Here is the &lt;strong&gt;Team&lt;/strong&gt; class fully transformed to support immutable object creation:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Team.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package immutable;
+
+import java.util.ArrayList;
+import java.util.List;
+import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
+
+@Immutable  &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+@ThreadSafe
+public final class Team {
+    private final String teamName;
+    private final List&amp;lt;String&amp;gt; playerNames;
+
+    public Team(final String name, final List&amp;lt;String&amp;gt; players) {
+        teamName = name;
+        playerNames = new ArrayList&amp;lt;&amp;gt;(players);
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List&amp;lt;String&amp;gt; getPlayerNames() {
+        return new ArrayList&amp;lt;&amp;gt;(playerNames);
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;&lt;a href=&quot;http://jcip.net.s3-website-us-east-1.amazonaws.com/&quot;&gt;Java Concurrency In Practice&lt;/a&gt; annotations used to convey intent&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_final_thoughts&quot;&gt;Final Thoughts&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Understanding the usefulness of immutable objects and how to create one is important to carry along with you on your knowledge tool belt.  However, the most obvious downside to using immutable objects is that in order to change its state a brand new instance must be constructed.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Additionally, caution must be used if the immutable object requires making defensive copies of large, mutable objects.  More than likely this won&amp;#8217;t be a problem unless you&amp;#8217;re making a large number of copies in a tight loop since that could be very slow and chew up your heap space.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Although it may be wise to prefer an immutable object, you must choose what best fits your application.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	</description>
+    </item>
     <item>
       <title>Include Jenkins Build Info With a Grails WAR File</title>
       <link>http://akeffalas.github.io/blog/2014/04/jenkins-build-info-grails-war.html</link>

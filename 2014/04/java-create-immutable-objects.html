@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt - Create Immutable Objects with Java</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/blog/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/blog/css/asciidoctor.css" rel="stylesheet">
+    <link href="/blog/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/blog/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/blog/favicon.ico?v=2" />
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/blog/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/blog/tags/java.html">Java</a></li>
+                <li><a href="/blog/tags/groovy.html">Groovy</a></li>
+                <li><a href="/blog/tags/grails.html">Grails</a></li>
+                <li><a href="/blog/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/blog/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/blog/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/blog/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+	
+	<div class="page-header">
+	    <h1>Create Immutable Objects with Java</h1>
+
+            <p class="text-left text-muted">
+                <i class="fa fa-calendar"></i> <small>Tuesday, April 29, 2014</small>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/blog/2014/04/java-create-immutable-objects.html#disqus_thread">Comments</a>
+            </p>
+
+            <span class="glyphicon glyphicon-tag"></span>
+                  <a href="/blog/tags/java.html"><span class="label label-primary">java</span></a>
+        </div> 
+
+	<p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Have you ever had to endure the <a href="http://www.osnews.com/images/comics/wtfm.jpg">agony</a> of debugging a piece of code that mutates the state of an object several times throughout an application?  Not only is that type of code ugly and unpredictable, it&#8217;s downright dangerous when dealing with multiple threads.</p>
+</div>
+<div class="paragraph">
+<p>An immutable object ensures that its internal state cannot be changed after instantiation.  Why does this matter?  This provides an immediate benefit when working with multi-threaded code in that no synchronization needs to be performed since the object does not offer any shared, mutable state between threads.  Therefore, the state of the object remains the same throughout its lifetime which makes the object automatically thread-safe.</p>
+</div>
+<!--continue-->
+</div>
+</div>
+<div class="sect2">
+<h3 id="_immutable_object_rules">Immutable Object Rules</h3>
+<div class="paragraph">
+<p>There are several simple rules that can be applied to the definition of a Java class to ensure that it allows for the creation of immutable objects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make all instance fields private and final</p>
+</li>
+<li>
+<p>Eliminate all methods that can mutate state</p>
+</li>
+<li>
+<p>Prevent subclasses from subverting immutable behavior</p>
+</li>
+<li>
+<p>Avoid storing references to mutable objects</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_making_a_pojo_immutable">Making a POJO Immutable</h3>
+<div class="paragraph">
+<p>Suppose that we&#8217;d like to make a basic Plain Old Java Object that exhibits immutable behavior.  Let&#8217;s start with the following <strong>Team</strong> class:</p>
+</div>
+<div class="listingblock">
+<div class="title">Team.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package immutable;
+
+import java.util.List;
+
+public class Team {
+    private String teamName;
+    private List&lt;String&gt; playerNames;
+
+    public void setTeamName(final String name) {
+        teamName = name;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public void setPlayerNames(final List&lt;String&gt; names) {
+        playerNames = names;
+    }
+
+    public List&lt;String&gt; getPlayerNames() {
+        return playerNames;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There&#8217;s nothing surprising here, just a simple POJO used to model a team that has a name and a collection of player names.  Right away you should be able to see that the rules for immutability have been violated.  Let&#8217;s transform this lowly POJO into a mighty Immutable Object.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_protect_internal_state">Protect Internal State</h3>
+<div class="paragraph">
+<p>The first immutability problem with <strong>Team</strong> is that it allows the object&#8217;s state to be manipulated at any time.  This can easily be fixed by removing all methods that allow for state manipulation and make all fields private and final.  After making these changes all of the information for a <strong>Team</strong> instance is now required at instantiation time.</p>
+</div>
+<div class="listingblock">
+<div class="title">Team.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package immutable;
+
+import java.util.List;
+
+public class Team {
+    private final String teamName;
+    private final List&lt;String&gt; playerNames;
+
+    public Team(final String name, final List&lt;String&gt; players) {
+        teamName = name;
+        playerNames = players;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List&lt;String&gt; getPlayerNames() {
+        return playerNames;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_avoid_subverting_immutable_behavior">Avoid Subverting Immutable Behavior</h3>
+<div class="paragraph">
+<p>The easiest way to ensure that immutable behavior cannot be tampered with by a subclass overriding methods is to mark the class as final to prevent subclassing all together.  Another approach would be to make the class&#8217;s constructor private and require object construction to be done through static factory methods.  Let&#8217;s go ahead and mark <strong>Team</strong> as final.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_perform_defensive_copies">Perform Defensive Copies</h3>
+<div class="paragraph">
+<p>Even after performing the previous steps <strong>Team</strong> is still <u>not</u> immutable.  How can that be?  A <strong>Team</strong> instance is constructed with an immutable <strong>String</strong> instance for the team name, but the player names associated with a <strong>Team</strong> is stored in a mutable <strong>List</strong> object reference.</p>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s how this can be exploited to bypass immutability:</p>
+</div>
+<div class="listingblock">
+<div class="title">Driver.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>public class Driver {
+    public static void main(final String[] args) {
+    	final String teamName = "My Team";
+    	final List&lt;String&gt; players = new ArrayList&lt;&gt;();
+    	players.add("Foo");
+
+        final Team team = new Team(teamName, players);
+        players.add("Bar");
+
+        System.out.println(team.getPlayerNames()); <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Outputs both players "Foo" and "Bar"</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The problem here is that the <code>players</code> object reference is created and maintained by the <strong>Driver</strong> class and the reference is passed by value to the <strong>Team</strong> instance.  After <strong>Team</strong> creation, the <code>players</code> list (which is still an object reference stored within the <strong>Team</strong> instance) is modified and the call to <code>team.getPlayerNames()</code> will return the contents of the <code>players</code> list.</p>
+</div>
+<div class="paragraph">
+<p>This can be fixed by making a defensive copy of the provided object reference in the <strong>Team</strong> constructor so that the <strong>Team</strong> object maintains a copy of the original list of player names.</p>
+</div>
+<div class="listingblock">
+<div class="title">Team.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>public Team(final String name, final List&lt;String&gt; players) {
+    teamName = name;
+    playerNames = new ArrayList&lt;&gt;(players); <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Make a defensive copy of the provided container</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Alright, we&#8217;ve made the defensive copy upon instantiation so <strong>Team</strong> must be immutable now, right?  Not so fast!  The <code>getPlayerNames()</code> method from <strong>Team</strong> is susceptible to modification since it currently returns the object reference to the player name list.</p>
+</div>
+<div class="listingblock">
+<div class="title">Driver.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>public class Driver {
+    public static void main(final String[] args) {
+        final String teamName = "My Team";
+        final List&lt;String&gt; players = new ArrayList&lt;&gt;();
+        players.add("Foo");
+
+        final Team team = new Team(teamName, players);
+        final List&lt;String&gt; teamPlayers = team.getPlayerNames();
+
+        System.out.println(teamPlayers); <i class="conum" data-value="1"></i><b>(1)</b>
+        teamPlayers.add("Bar");
+        System.out.println(team.getPlayerNames()); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Outputs "Foo", as expected</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Outputs "Foo" and "Bar", uh-oh!</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As you can see, <strong>Team</strong> is still not immutable because the reference to the players list is returned via <code>getPlayerNames()</code>.  This reference can be held by the <strong>Driver</strong> class and mutated which modifies the internal state of a <strong>Team</strong> instance.  Once again, the fix is to create a defensive copy.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_our_mighty_immutable_object">Our Mighty Immutable Object</h3>
+<div class="paragraph">
+<p>Here is the <strong>Team</strong> class fully transformed to support immutable object creation:</p>
+</div>
+<div class="listingblock">
+<div class="title">Team.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package immutable;
+
+import java.util.ArrayList;
+import java.util.List;
+import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
+
+@Immutable  <i class="conum" data-value="1"></i><b>(1)</b>
+@ThreadSafe
+public final class Team {
+    private final String teamName;
+    private final List&lt;String&gt; playerNames;
+
+    public Team(final String name, final List&lt;String&gt; players) {
+        teamName = name;
+        playerNames = new ArrayList&lt;&gt;(players);
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List&lt;String&gt; getPlayerNames() {
+        return new ArrayList&lt;&gt;(playerNames);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><a href="http://jcip.net.s3-website-us-east-1.amazonaws.com/">Java Concurrency In Practice</a> annotations used to convey intent</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_final_thoughts">Final Thoughts</h3>
+<div class="paragraph">
+<p>Understanding the usefulness of immutable objects and how to create one is important to carry along with you on your knowledge tool belt.  However, the most obvious downside to using immutable objects is that in order to change its state a brand new instance must be constructed.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, caution must be used if the immutable object requires making defensive copies of large, mutable objects.  More than likely this won&#8217;t be a problem unless you&#8217;re making a large number of copies in a tight loop since that could be very slow and chew up your heap space.</p>
+</div>
+<div class="paragraph">
+<p>Although it may be wise to prefer an immutable object, you must choose what best fits your application.</p>
+</div>
+</div></p>
+
+        <br>
+
+        <div class="fb-like" data-href="/blog/2014/04/java-create-immutable-objects.html" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+
+
+        <div class="g-plusone" data-size="medium" data-href="/blog/2014/04/java-create-immutable-objects.html"></div>
+
+
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/blog/2014/04/java-create-immutable-objects.html" data-via="akeffalas" data-lang="en">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+        <hr>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_shortname = 'programmerstoolbelt'; // required: replace example with your forum shortname
+
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+	
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/blog/js/jquery-1.9.1.min.js"></script>
+    <script src="/blog/js/bootstrap.min.js"></script>
+    <script src="/blog/js/run_prettify.js"></script>
+    
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>
