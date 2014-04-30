@@ -1,0 +1,205 @@
+= Create Immutable Objects with Java
+akeffalas
+2014-04-29
+:jbake-type: post
+:jbake-tags: java
+:jbake-status: published
+:source-highlighter: prettify
+:id: java_immutable_objects
+:icons: font
+:wtfagony: http://www.osnews.com/images/comics/wtfm.jpg[agony]
+:jcip: http://jcip.net.s3-website-us-east-1.amazonaws.com/[Java Concurrency In Practice]
+
+Have you ever had to endure the {wtfagony} of debugging a piece of code that mutates the state of an object several times throughout an application?  Not only is that type of code ugly and unpredictable, it's downright dangerous when dealing with multiple threads.
+
+An immutable object ensures that its internal state cannot be changed after instantiation.  Why does this matter?  This provides an immediate benefit when working with multi-threaded code in that no synchronization needs to be performed since the object does not offer any shared, mutable state between threads.  Therefore, the state of the object remains the same throughout its lifetime which makes the object automatically thread-safe.
+
+++++
+<!--continue-->
+++++
+
+=== Immutable Object Rules  ===
+
+There are several simple rules that can be applied to the definition of a Java class to ensure that it allows for the creation of immutable objects:
+
+* Make all instance fields private and final
+* Eliminate all methods that can mutate state
+* Prevent subclasses from subverting immutable behavior
+* Avoid storing references to mutable objects
+
+=== Making a POJO Immutable ===
+
+Suppose that we'd like to make a basic Plain Old Java Object that exhibits immutable behavior.  Let's start with the following *Team* class:
+
+.Team.java
+[source,java,numbered]
+----
+package immutable;
+
+import java.util.List;
+
+public class Team {
+    private String teamName;
+    private List<String> playerNames;
+
+    public void setTeamName(final String name) {
+        teamName = name;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public void setPlayerNames(final List<String> names) {
+        playerNames = names;
+    }
+
+    public List<String> getPlayerNames() {
+        return playerNames;
+    }
+}
+----
+
+There's nothing surprising here, just a simple POJO used to model a team that has a name and a collection of player names.  Right away you should be able to see that the rules for immutability have been violated.  Let's transform this lowly POJO into a mighty Immutable Object.
+
+=== Protect Internal State ===
+
+The first immutability problem with *Team* is that it allows the object's state to be manipulated at any time.  This can easily be fixed by removing all methods that allow for state manipulation and make all fields private and final.  After making these changes all of the information for a *Team* instance is now required at instantiation time. 
+
+.Team.java
+[source,java,numbered]
+----
+package immutable;
+
+import java.util.List;
+
+public class Team {
+    private final String teamName;
+    private final List<String> playerNames;
+
+    public Team(final String name, final List<String> players) {
+        teamName = name;
+        playerNames = players;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List<String> getPlayerNames() {
+        return playerNames;
+    }
+}
+----
+
+=== Avoid Subverting Immutable Behavior ===
+
+The easiest way to ensure that immutable behavior cannot be tampered with by a subclass overriding methods is to mark the class as final to prevent subclassing all together.  Another approach would be to make the class's constructor private and require object construction to be done through static factory methods.  Let's go ahead and mark *Team* as final.
+
+=== Perform Defensive Copies ===
+
+Even after performing the previous steps *Team* is still +++<u>not</u>+++ immutable.  How can that be?  A *Team* instance is constructed with an immutable *String* instance for the team name, but the player names associated with a *Team* is stored in a mutable *List* object reference.
+
+Here's how this can be exploited to bypass immutability:
+
+.Driver.java
+[source,java,numbered]
+----
+public class Driver {
+    public static void main(final String[] args) {
+    	final String teamName = "My Team";
+    	final List<String> players = new ArrayList<>();
+    	players.add("Foo");
+
+        final Team team = new Team(teamName, players);
+        players.add("Bar");
+
+        System.out.println(team.getPlayerNames()); <1>
+    }
+}
+----
+<1> Outputs both players "Foo" and "Bar"
+
+The problem here is that the `players` object reference is created and maintained by the *Driver* class and the reference is passed by value to the *Team* instance.  After *Team* creation, the `players` list (which is still an object reference stored within the *Team* instance) is modified and the call to `team.getPlayerNames()` will return the contents of the `players` list.
+
+This can be fixed by making a defensive copy of the provided object reference in the *Team* constructor so that the *Team* object maintains a copy of the original list of player names.
+
+.Team.java
+[source,java,numbered]
+----
+public Team(final String name, final List<String> players) {
+    teamName = name;
+    playerNames = new ArrayList<>(players); <1>
+}
+----
+<1> Make a defensive copy of the provided container
+
+Alright, we've made the defensive copy upon instantiation so *Team* must be immutable now, right?  Not so fast!  The `getPlayerNames()` method from *Team* is susceptible to modification since it currently returns the object reference to the player name list.
+
+.Driver.java
+[source,java,numbered]
+----
+public class Driver {
+    public static void main(final String[] args) {
+        final String teamName = "My Team";
+        final List<String> players = new ArrayList<>();
+        players.add("Foo");
+
+        final Team team = new Team(teamName, players);
+        final List<String> teamPlayers = team.getPlayerNames();
+
+        System.out.println(teamPlayers); <1>
+        teamPlayers.add("Bar");
+        System.out.println(team.getPlayerNames()); <2>
+    }
+}
+----
+<1> Outputs "Foo", as expected
+<2> Outputs "Foo" and "Bar", uh-oh!
+
+As you can see, *Team* is still not immutable because the reference to the players list is returned via `getPlayerNames()`.  This reference can be held by the *Driver* class and mutated which modifies the internal state of a *Team* instance.  Once again, the fix is to create a defensive copy.
+
+=== Our Mighty Immutable Object ===
+
+Here is the *Team* class fully transformed to support immutable object creation:
+
+.Team.java
+[source,java,numbered]
+----
+package immutable;
+
+import java.util.ArrayList;
+import java.util.List;
+import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
+
+@Immutable  <1>
+@ThreadSafe
+public final class Team {
+    private final String teamName;
+    private final List<String> playerNames;
+
+    public Team(final String name, final List<String> players) {
+        teamName = name;
+        playerNames = new ArrayList<>(players);
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public List<String> getPlayerNames() {
+        return new ArrayList<>(playerNames);
+    }
+}
+----
+<1> {jcip} annotations used to convey intent
+
+=== Final Thoughts ===
+
+Understanding the usefulness of immutable objects and how to create one is important to carry along with you on your knowledge tool belt.  However, the most obvious downside to using immutable objects is that in order to change its state a brand new instance must be constructed.  
+
+Additionally, caution must be used if the immutable object requires making defensive copies of large, mutable objects.  More than likely this won't be a problem unless you're making a large number of copies in a tight loop since that could be very slow and chew up your heap space.  
+
+Although it may be wise to prefer an immutable object, you must choose what best fits your application.
+
