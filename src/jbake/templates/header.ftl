@@ -25,12 +25,6 @@
 
     <link rel="shortcut icon" href="${config.site_context}/favicon.ico?v=2" />
 
-<script>
-  window.GoogleAnalyticsObject = 'ga';
-  window.ga = { q: [['create', 'UA-50871420-1', 'akeffalas.github.io'], ['send', 'pageview']], l: Date.now() };
-  require(['http://www.google-analytics.com/analytics.js']);
-</script>
-
   </head>
   <body>
 
