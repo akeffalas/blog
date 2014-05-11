@@ -14,7 +14,6 @@
     <script src="${config.site_context}/js/jquery-1.9.1.min.js"></script>
     <script src="${config.site_context}/js/bootstrap.min.js"></script>
     <script src="${config.site_context}/js/run_prettify.js"></script>
-    <script src="${config.site_context}/js/google-analytics-amd.js"></script> 
 
     <script type="text/javascript">
       window.___gcfg = {
