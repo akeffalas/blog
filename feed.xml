@@ -6,8 +6,8 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 11 May 2014 13:23:53 -0400</pubDate>
-    <lastBuildDate>Sun, 11 May 2014 13:23:53 -0400</lastBuildDate>
+    <pubDate>Sun, 11 May 2014 13:30:03 -0400</pubDate>
+    <lastBuildDate>Sun, 11 May 2014 13:30:03 -0400</lastBuildDate>
 
     <item>
       <title>Create Immutable Objects with Java</title>
