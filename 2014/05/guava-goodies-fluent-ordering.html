@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt - Guava Goodies: Create &quot;fluent&quot; Comparators with Ordering</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/blog/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/blog/css/asciidoctor.css" rel="stylesheet">
+    <link href="/blog/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/blog/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/blog/favicon.ico?v=2" />
+
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/blog/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/blog/tags/java.html">Java</a></li>
+                <li><a href="/blog/tags/groovy.html">Groovy</a></li>
+                <li><a href="/blog/tags/grails.html">Grails</a></li>
+                <li><a href="/blog/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/blog/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/blog/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/blog/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+	
+	<div class="page-header">
+	    <h1>Guava Goodies: Create &quot;fluent&quot; Comparators with Ordering</h1>
+
+            <p class="text-left text-muted">
+                <i class="fa fa-calendar"></i> <small>Friday, May 30, 2014</small>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/blog/2014/05/guava-goodies-fluent-ordering.html#disqus_thread">Comments</a>
+            </p>
+
+            <span class="glyphicon glyphicon-tag"></span>
+                  <a href="/blog/tags/java.html"><span class="label label-primary">java</span></a>
+                  <a href="/blog/tags/guava.html"><span class="label label-primary">guava</span></a>
+        </div> 
+
+	<p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you haven&#8217;t had the pleasure of using Google&#8217;s <a href="https://code.google.com/p/guava-libraries">Guava</a> library with your favorite JVM-based language, I hope that I can convince you to give it a spin.  In my opinion, Guava is one of those must-have libraries that should be on your classpath for practically any project.  This post will be the first of several that will spotlight some of my favorite utilities provided by Guava.  Enough with the flattery, let&#8217;s take a look at what makes <strong>Ordering</strong> so useful.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Ordering</strong> <a href="https://code.google.com/p/guava-libraries/wiki/OrderingExplained">wiki</a> states that the class should be thought of as a "fluent" <strong>Comparator</strong>.  What does this mean?  Well, first off <strong>Ordering</strong> is an implementation of Java&#8217;s <a href="http://docs.oracle.com/javase/7/docs/api/java/util/Comparator.html">Comparator</a> interface.  Therefore, any place that you can use a <strong>Comparator</strong>, you can use an <strong>Ordering</strong> instance.  What makes <strong>Ordering</strong> fluent?  Take a glance at the <a href="http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/collect/Ordering.html">API</a>.  The method names and how they&#8217;re chained together is what provides the powerful fluency; performing operations just makes sense due to its readability.  Let&#8217;s look at some examples to see things in action.</p>
+</div>
+<!--continue-->
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sorting">Sorting</h3>
+<div class="paragraph">
+<p>A <code>natural()</code> <strong>Ordering</strong> can be used to sort a <strong>Collection</strong> based on the <strong>Comparator</strong> defined for the type contained in the collection being sorted.</p>
+</div>
+<div class="listingblock">
+<div class="title">Demo.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package guava.demo.ordering;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import com.google.common.collect.Ordering;
+
+public class Demo {
+    public static void main(final String[] args) {
+        final List&lt;String&gt; values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+
+        Collections.sort(values, Ordering.natural()); <i class="conum" data-value="1"></i><b>(1)</b>
+        System.out.println(values);
+    }
+}
+
+// Outputs: [buckle, my, one, shoe, two]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Sort the collection using the default <strong>String</strong> <code>compare()</code></td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_reverse_sort">Reverse Sort</h4>
+<div class="paragraph">
+<p>Pretty easy, right?  How would you go about performing a reverse sort?  By using the <code>reverse()</code> method, of course!</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;String&gt; values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+Collections.sort(values, Ordering.natural().reverse());
+
+System.out.println(values);
+
+// Outputs: [two, shoe, one, my, buckle]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here we&#8217;ve chained two <strong>Ordering</strong> comparators together to sort the collection by the <strong>String</strong>'s <strong>Comparator</strong> and then apply the reverse <strong>Ordering</strong> to sort the collection in descending order.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_detecting_ordered_values">Detecting Ordered Values</h4>
+<div class="paragraph">
+<p>What if you have an <strong>Iterable</strong> and want to determine if it is already sorted?  <strong>Ordering</strong> provides the <code>isOrdered()</code> method to check if the provided <strong>Iterable</strong> is sorted based on the defined <strong>Ordering</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;String&gt; values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+System.out.println(Ordering.natural().isOrdered(values));
+
+// Outputs: false</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_detecting_duplicate_values">Detecting Duplicate Values</h4>
+<div class="paragraph">
+<p>If you have duplicate values in the <strong>Iterable</strong>, <code>isOrdered()</code> will return true if and only if they&#8217;re sorted correctly.  If you preferred a strict ordering such that there should be no duplicates, <strong>Ordering</strong> has you covered with <code>isStrictlyOrdered()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;String&gt; values = Arrays.asList("one", "two", "buckle", "two", "my", "shoe");
+System.out.println(Ordering.natural().isStrictlyOrdered(values));
+
+// Outputs: false</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_handling_null_values">Handling Null Values</h3>
+<div class="paragraph">
+<p>What if you had null references in the collection?  By default, a natural <strong>Ordering</strong> will throw a <strong>NullPointerException</strong> if a null is in the collection.  However, if you want to allow nulls <strong>Ordering</strong> lets you specify their sort order to either all occur before or after the non-null values in the collection.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;String&gt; valuesWithNulls = Arrays.asList("one", null, "two", "buckle", null, "my", "shoe");
+Collections.sort(valuesWithNulls, Ordering.natural().nullsFirst()); <i class="conum" data-value="1"></i><b>(1)</b>
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [null, null, buckle, my, one, shoe, two]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Sort the nulls first</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;String&gt; valuesWithNulls = Arrays.asList("one", null, "two", "buckle", null, "my", "shoe");
+Collections.sort(valuesWithNulls, Ordering.natural().nullsLast()); <i class="conum" data-value="1"></i><b>(1)</b>
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [buckle, my, one, shoe, two, null, null]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Sort the nulls last</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_a_custom_ordering">Creating a Custom Ordering</h3>
+<div class="paragraph">
+<p>This is great and all, but how do you create your own <strong>Ordering</strong>?  Easy!  Just instantiate a new <strong>Ordering</strong> and override its <code>compare()</code> method.  Suppose you wanted to create an <strong>Ordering</strong> that compared elements based on their <strong>String</strong> length:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final Ordering&lt;String&gt; byLength = new Ordering&lt;String&gt;() {
+   @Override
+   public int compare(final String first, final String second) {
+      return Integer.compare(first.length(), second.length()); <i class="conum" data-value="1"></i><b>(1)</b>
+   }
+};
+
+final List&lt;String&gt; values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+Collections.sort(values, byLength);
+
+// Outputs: [my, two, one, shoe, buckle]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Using Java 7&#8217;s built-in <code>compare()</code> on <strong>Integer</strong></td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_use_with_a_compound_ordering">Use with a Compound Ordering</h4>
+<div class="paragraph">
+<p>Now what if we wanted to sort based on <strong>String</strong> length as well as value.  We can use <code>compound()</code> to provide a tie-breaker comparator to chain together the two orderings required to meet our needs.  In our case, we&#8217;ll use the <code>byLength</code> ordering with <code>Ordering.natural()</code> to break ties.  Therefore, if we have two strings of equal length they&#8217;ll be compared based on their lexographical ordering.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>Collections.sort(values, byLength.compound(Ordering.natural()));
+System.out.println(values);
+
+// Outputs: [my, one, two, shoe, buckle]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_find_the_min_max_value">Find the Min/Max Value</h3>
+<div class="paragraph">
+<p>Suppose that you have an unsorted <strong>Iterable</strong> and need to find the minimum and maximum value contained within it based on a specific <strong>Ordering</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>final List&lt;Integer&gt; numbers = Arrays.asList(1, 14, 15, 7, 94, 3);
+System.out.println(Ordering.natural().min(numbers));
+System.out.println(Ordering.natural().max(numbers));
+
+// Outputs: 1 94</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_final_thoughts">Final Thoughts</h3>
+<div class="paragraph">
+<p>There is plenty more that can be done with <strong>Ordering</strong>, but I think the brief examples of its "fluent" API provided here should be enough to whet your appetite to experiment some more.  Do yourself a favor and look at the <code>onResultOf()</code> method to see how flexible (and fluent) <strong>Ordering</strong> can be.</p>
+</div>
+<div class="paragraph">
+<p>If you haven&#8217;t used Guava before I urge you to throw it on your classpath and don&#8217;t look back. Be on the lookout for future Guava Goodies posts!</p>
+</div>
+</div></p>
+
+        <br>
+
+        <div class="fb-like" data-href="/blog/2014/05/guava-goodies-fluent-ordering.html" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+
+
+        <div class="g-plusone" data-size="medium" data-href="/blog/2014/05/guava-goodies-fluent-ordering.html"></div>
+
+
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/blog/2014/05/guava-goodies-fluent-ordering.html" data-via="akeffalas" data-lang="en">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+        <hr>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_shortname = 'programmerstoolbelt'; // required: replace example with your forum shortname
+
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+	
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/blog/js/jquery-1.9.1.min.js"></script>
+    <script src="/blog/js/bootstrap.min.js"></script>
+    <script src="/blog/js/run_prettify.js"></script>
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>

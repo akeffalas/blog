@@ -6,9 +6,220 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 11 May 2014 13:35:42 -0400</pubDate>
-    <lastBuildDate>Sun, 11 May 2014 13:35:42 -0400</lastBuildDate>
+    <pubDate>Fri, 30 May 2014 23:04:14 -0400</pubDate>
+    <lastBuildDate>Fri, 30 May 2014 23:04:14 -0400</lastBuildDate>
 
+    <item>
+      <title>Guava Goodies: Create &quot;fluent&quot; Comparators with Ordering</title>
+      <link>http://akeffalas.github.io/blog/2014/05/guava-goodies-fluent-ordering.html</link>
+      <pubDate>Fri, 30 May 2014 00:00:00 -0400</pubDate>
+      <guid isPermaLink="false">/2014/05/guava-goodies-fluent-ordering.html</guid>
+      	<description>
+	&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you haven&amp;#8217;t had the pleasure of using Google&amp;#8217;s &lt;a href=&quot;https://code.google.com/p/guava-libraries&quot;&gt;Guava&lt;/a&gt; library with your favorite JVM-based language, I hope that I can convince you to give it a spin.  In my opinion, Guava is one of those must-have libraries that should be on your classpath for practically any project.  This post will be the first of several that will spotlight some of my favorite utilities provided by Guava.  Enough with the flattery, let&amp;#8217;s take a look at what makes &lt;strong&gt;Ordering&lt;/strong&gt; so useful.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;strong&gt;Ordering&lt;/strong&gt; &lt;a href=&quot;https://code.google.com/p/guava-libraries/wiki/OrderingExplained&quot;&gt;wiki&lt;/a&gt; states that the class should be thought of as a &quot;fluent&quot; &lt;strong&gt;Comparator&lt;/strong&gt;.  What does this mean?  Well, first off &lt;strong&gt;Ordering&lt;/strong&gt; is an implementation of Java&amp;#8217;s &lt;a href=&quot;http://docs.oracle.com/javase/7/docs/api/java/util/Comparator.html&quot;&gt;Comparator&lt;/a&gt; interface.  Therefore, any place that you can use a &lt;strong&gt;Comparator&lt;/strong&gt;, you can use an &lt;strong&gt;Ordering&lt;/strong&gt; instance.  What makes &lt;strong&gt;Ordering&lt;/strong&gt; fluent?  Take a glance at the &lt;a href=&quot;http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/collect/Ordering.html&quot;&gt;API&lt;/a&gt;.  The method names and how they&amp;#8217;re chained together is what provides the powerful fluency; performing operations just makes sense due to its readability.  Let&amp;#8217;s look at some examples to see things in action.&lt;/p&gt;
+&lt;/div&gt;
+&lt;!--continue--&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_sorting&quot;&gt;Sorting&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;A &lt;code&gt;natural()&lt;/code&gt; &lt;strong&gt;Ordering&lt;/strong&gt; can be used to sort a &lt;strong&gt;Collection&lt;/strong&gt; based on the &lt;strong&gt;Comparator&lt;/strong&gt; defined for the type contained in the collection being sorted.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Demo.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package guava.demo.ordering;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import com.google.common.collect.Ordering;
+
+public class Demo {
+    public static void main(final String[] args) {
+        final List&amp;lt;String&amp;gt; values = Arrays.asList(&quot;one&quot;, &quot;two&quot;, &quot;buckle&quot;, &quot;my&quot;, &quot;shoe&quot;);
+
+        Collections.sort(values, Ordering.natural()); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+        System.out.println(values);
+    }
+}
+
+// Outputs: [buckle, my, one, shoe, two]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Sort the collection using the default &lt;strong&gt;String&lt;/strong&gt; &lt;code&gt;compare()&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_reverse_sort&quot;&gt;Reverse Sort&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Pretty easy, right?  How would you go about performing a reverse sort?  By using the &lt;code&gt;reverse()&lt;/code&gt; method, of course!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;String&amp;gt; values = Arrays.asList(&quot;one&quot;, &quot;two&quot;, &quot;buckle&quot;, &quot;my&quot;, &quot;shoe&quot;);
+Collections.sort(values, Ordering.natural().reverse());
+
+System.out.println(values);
+
+// Outputs: [two, shoe, one, my, buckle]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Here we&amp;#8217;ve chained two &lt;strong&gt;Ordering&lt;/strong&gt; comparators together to sort the collection by the &lt;strong&gt;String&lt;/strong&gt;&apos;s &lt;strong&gt;Comparator&lt;/strong&gt; and then apply the reverse &lt;strong&gt;Ordering&lt;/strong&gt; to sort the collection in descending order.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_detecting_ordered_values&quot;&gt;Detecting Ordered Values&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;What if you have an &lt;strong&gt;Iterable&lt;/strong&gt; and want to determine if it is already sorted?  &lt;strong&gt;Ordering&lt;/strong&gt; provides the &lt;code&gt;isOrdered()&lt;/code&gt; method to check if the provided &lt;strong&gt;Iterable&lt;/strong&gt; is sorted based on the defined &lt;strong&gt;Ordering&lt;/strong&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;String&amp;gt; values = Arrays.asList(&quot;one&quot;, &quot;two&quot;, &quot;buckle&quot;, &quot;my&quot;, &quot;shoe&quot;);
+System.out.println(Ordering.natural().isOrdered(values));
+
+// Outputs: false&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_detecting_duplicate_values&quot;&gt;Detecting Duplicate Values&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you have duplicate values in the &lt;strong&gt;Iterable&lt;/strong&gt;, &lt;code&gt;isOrdered()&lt;/code&gt; will return true if and only if they&amp;#8217;re sorted correctly.  If you preferred a strict ordering such that there should be no duplicates, &lt;strong&gt;Ordering&lt;/strong&gt; has you covered with &lt;code&gt;isStrictlyOrdered()&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;String&amp;gt; values = Arrays.asList(&quot;one&quot;, &quot;two&quot;, &quot;buckle&quot;, &quot;two&quot;, &quot;my&quot;, &quot;shoe&quot;);
+System.out.println(Ordering.natural().isStrictlyOrdered(values));
+
+// Outputs: false&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_handling_null_values&quot;&gt;Handling Null Values&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;What if you had null references in the collection?  By default, a natural &lt;strong&gt;Ordering&lt;/strong&gt; will throw a &lt;strong&gt;NullPointerException&lt;/strong&gt; if a null is in the collection.  However, if you want to allow nulls &lt;strong&gt;Ordering&lt;/strong&gt; lets you specify their sort order to either all occur before or after the non-null values in the collection.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;String&amp;gt; valuesWithNulls = Arrays.asList(&quot;one&quot;, null, &quot;two&quot;, &quot;buckle&quot;, null, &quot;my&quot;, &quot;shoe&quot;);
+Collections.sort(valuesWithNulls, Ordering.natural().nullsFirst()); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [null, null, buckle, my, one, shoe, two]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Sort the nulls first&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;String&amp;gt; valuesWithNulls = Arrays.asList(&quot;one&quot;, null, &quot;two&quot;, &quot;buckle&quot;, null, &quot;my&quot;, &quot;shoe&quot;);
+Collections.sort(valuesWithNulls, Ordering.natural().nullsLast()); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [buckle, my, one, shoe, two, null, null]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Sort the nulls last&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_creating_a_custom_ordering&quot;&gt;Creating a Custom Ordering&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This is great and all, but how do you create your own &lt;strong&gt;Ordering&lt;/strong&gt;?  Easy!  Just instantiate a new &lt;strong&gt;Ordering&lt;/strong&gt; and override its &lt;code&gt;compare()&lt;/code&gt; method.  Suppose you wanted to create an &lt;strong&gt;Ordering&lt;/strong&gt; that compared elements based on their &lt;strong&gt;String&lt;/strong&gt; length:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final Ordering&amp;lt;String&amp;gt; byLength = new Ordering&amp;lt;String&amp;gt;() {
+   @Override
+   public int compare(final String first, final String second) {
+      return Integer.compare(first.length(), second.length()); &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+   }
+};
+
+final List&amp;lt;String&amp;gt; values = Arrays.asList(&quot;one&quot;, &quot;two&quot;, &quot;buckle&quot;, &quot;my&quot;, &quot;shoe&quot;);
+Collections.sort(values, byLength);
+
+// Outputs: [my, two, one, shoe, buckle]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Using Java 7&amp;#8217;s built-in &lt;code&gt;compare()&lt;/code&gt; on &lt;strong&gt;Integer&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_use_with_a_compound_ordering&quot;&gt;Use with a Compound Ordering&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now what if we wanted to sort based on &lt;strong&gt;String&lt;/strong&gt; length as well as value.  We can use &lt;code&gt;compound()&lt;/code&gt; to provide a tie-breaker comparator to chain together the two orderings required to meet our needs.  In our case, we&amp;#8217;ll use the &lt;code&gt;byLength&lt;/code&gt; ordering with &lt;code&gt;Ordering.natural()&lt;/code&gt; to break ties.  Therefore, if we have two strings of equal length they&amp;#8217;ll be compared based on their lexographical ordering.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;Collections.sort(values, byLength.compound(Ordering.natural()));
+System.out.println(values);
+
+// Outputs: [my, one, two, shoe, buckle]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_find_the_min_max_value&quot;&gt;Find the Min/Max Value&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Suppose that you have an unsorted &lt;strong&gt;Iterable&lt;/strong&gt; and need to find the minimum and maximum value contained within it based on a specific &lt;strong&gt;Ordering&lt;/strong&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;final List&amp;lt;Integer&amp;gt; numbers = Arrays.asList(1, 14, 15, 7, 94, 3);
+System.out.println(Ordering.natural().min(numbers));
+System.out.println(Ordering.natural().max(numbers));
+
+// Outputs: 1 94&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_final_thoughts&quot;&gt;Final Thoughts&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;There is plenty more that can be done with &lt;strong&gt;Ordering&lt;/strong&gt;, but I think the brief examples of its &quot;fluent&quot; API provided here should be enough to whet your appetite to experiment some more.  Do yourself a favor and look at the &lt;code&gt;onResultOf()&lt;/code&gt; method to see how flexible (and fluent) &lt;strong&gt;Ordering&lt;/strong&gt; can be.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you haven&amp;#8217;t used Guava before I urge you to throw it on your classpath and don&amp;#8217;t look back. Be on the lookout for future Guava Goodies posts!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	</description>
+    </item>
     <item>
       <title>Create Immutable Objects with Java</title>
       <link>http://akeffalas.github.io/blog/2014/04/java-create-immutable-objects.html</link>
