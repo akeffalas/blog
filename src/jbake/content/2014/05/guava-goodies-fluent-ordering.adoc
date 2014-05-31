@@ -1,0 +1,167 @@
+= Guava Goodies: Create "fluent" Comparators with Ordering
+akeffalas
+2014-05-30
+:jbake-type: post
+:jbake-tags: java,guava
+:jbake-status: published
+:source-highlighter: prettify
+:id: guava_goodies_fluent_ordering
+:icons: font
+:guava: https://code.google.com/p/guava-libraries[Guava]
+:ordering_wiki: https://code.google.com/p/guava-libraries/wiki/OrderingExplained[wiki]
+:comparator: http://docs.oracle.com/javase/7/docs/api/java/util/Comparator.html[Comparator]
+:ordering_api: http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/collect/Ordering.html[API]
+
+If you haven't had the pleasure of using Google's {guava} library with your favorite JVM-based language, I hope that I can convince you to give it a spin.  In my opinion, Guava is one of those must-have libraries that should be on your classpath for practically any project.  This post will be the first of several that will spotlight some of my favorite utilities provided by Guava.  Enough with the flattery, let's take a look at what makes *Ordering* so useful.
+
+The *Ordering* {ordering_wiki} states that the class should be thought of as a "fluent" *Comparator*.  What does this mean?  Well, first off *Ordering* is an implementation of Java's {comparator} interface.  Therefore, any place that you can use a *Comparator*, you can use an *Ordering* instance.  What makes *Ordering* fluent?  Take a glance at the {ordering_api}.  The method names and how they're chained together is what provides the powerful fluency; performing operations just makes sense due to its readability.  Let's look at some examples to see things in action.
+
+++++
+<!--continue-->
+++++
+
+=== Sorting  ===
+
+A `natural()` *Ordering* can be used to sort a *Collection* based on the *Comparator* defined for the type contained in the collection being sorted.
+
+.Demo.java
+[source,java,numbered]
+----
+package guava.demo.ordering;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import com.google.common.collect.Ordering;
+
+public class Demo {
+    public static void main(final String[] args) {
+        final List<String> values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+        
+        Collections.sort(values, Ordering.natural()); <1>
+        System.out.println(values);
+    }
+}
+
+// Outputs: [buckle, my, one, shoe, two]
+----
+<1> Sort the collection using the default *String* `compare()`
+
+
+==== Reverse Sort ====
+
+Pretty easy, right?  How would you go about performing a reverse sort?  By using the `reverse()` method, of course!
+
+[source,java,numbered]
+----
+final List<String> values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+Collections.sort(values, Ordering.natural().reverse());
+
+System.out.println(values);
+
+// Outputs: [two, shoe, one, my, buckle]
+----
+
+Here we've chained two *Ordering* comparators together to sort the collection by the *String*'s *Comparator* and then apply the reverse *Ordering* to sort the collection in descending order.
+
+==== Detecting Ordered Values ====
+
+What if you have an *Iterable* and want to determine if it is already sorted?  *Ordering* provides the `isOrdered()` method to check if the provided *Iterable* is sorted based on the defined *Ordering*.
+
+[source,java,numbered]
+----
+final List<String> values = Arrays.asList("one", "two", "buckle", "my", "shoe");
+System.out.println(Ordering.natural().isOrdered(values));
+
+// Outputs: false
+----
+
+==== Detecting Duplicate Values ====
+
+If you have duplicate values in the *Iterable*, `isOrdered()` will return true if and only if they're sorted correctly.  If you preferred a strict ordering such that there should be no duplicates, *Ordering* has you covered with `isStrictlyOrdered()`:
+
+[source,java,numbered]
+----
+final List<String> values = Arrays.asList("one", "two", "buckle", "two", "my", "shoe");        
+System.out.println(Ordering.natural().isStrictlyOrdered(values));
+
+// Outputs: false
+----
+
+=== Handling Null Values  ===
+
+What if you had null references in the collection?  By default, a natural *Ordering* will throw a *NullPointerException* if a null is in the collection.  However, if you want to allow nulls *Ordering* lets you specify their sort order to either all occur before or after the non-null values in the collection.
+
+[source,java,numbered]
+----
+final List<String> valuesWithNulls = Arrays.asList("one", null, "two", "buckle", null, "my", "shoe");
+Collections.sort(valuesWithNulls, Ordering.natural().nullsFirst()); <1>
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [null, null, buckle, my, one, shoe, two]
+----
+<1> Sort the nulls first
+
+
+[source,java,numbered]
+----
+final List<String> valuesWithNulls = Arrays.asList("one", null, "two", "buckle", null, "my", "shoe");
+Collections.sort(valuesWithNulls, Ordering.natural().nullsLast()); <1>
+
+System.out.println(valuesWithNulls);
+
+// Outputs: [buckle, my, one, shoe, two, null, null]
+----
+<1> Sort the nulls last
+
+=== Creating a Custom Ordering  ===
+
+This is great and all, but how do you create your own *Ordering*?  Easy!  Just instantiate a new *Ordering* and override its `compare()` method.  Suppose you wanted to create an *Ordering* that compared elements based on their *String* length:
+
+[source,java,numbered]
+----
+final Ordering<String> byLength = new Ordering<String>() {
+   @Override
+   public int compare(final String first, final String second) {
+      return Integer.compare(first.length(), second.length()); <1>
+   }
+};
+
+final List<String> values = Arrays.asList("one", "two", "buckle", "my", "shoe"); 
+Collections.sort(values, byLength);
+
+// Outputs: [my, two, one, shoe, buckle]
+----
+<1> Using Java 7's built-in `compare()` on *Integer*
+
+==== Use with a Compound Ordering  ====
+
+Now what if we wanted to sort based on *String* length as well as value.  We can use `compound()` to provide a tie-breaker comparator to chain together the two orderings required to meet our needs.  In our case, we'll use the `byLength` ordering with `Ordering.natural()` to break ties.  Therefore, if we have two strings of equal length they'll be compared based on their lexographical ordering.
+
+[source,java,numbered]
+----
+Collections.sort(values, byLength.compound(Ordering.natural()));
+System.out.println(values);
+
+// Outputs: [my, one, two, shoe, buckle]
+----
+
+=== Find the Min/Max Value ===
+
+Suppose that you have an unsorted *Iterable* and need to find the minimum and maximum value contained within it based on a specific *Ordering*.
+
+[source,java,numbered]
+----
+final List<Integer> numbers = Arrays.asList(1, 14, 15, 7, 94, 3);
+System.out.println(Ordering.natural().min(numbers));
+System.out.println(Ordering.natural().max(numbers));
+
+// Outputs: 1 94
+----
+
+=== Final Thoughts ===
+
+There is plenty more that can be done with *Ordering*, but I think the brief examples of its "fluent" API provided here should be enough to whet your appetite to experiment some more.  Do yourself a favor and look at the `onResultOf()` method to see how flexible (and fluent) *Ordering* can be.
+
+If you haven't used Guava before I urge you to throw it on your classpath and don't look back. Be on the lookout for future Guava Goodies posts!
