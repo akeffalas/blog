@@ -6,9 +6,228 @@
     <atom:link href="http://akeffalas.github.io/blog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Programming wisdom for your knowledge tool belt.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 30 May 2014 23:04:14 -0400</pubDate>
-    <lastBuildDate>Fri, 30 May 2014 23:04:14 -0400</lastBuildDate>
+    <pubDate>Sun, 15 Jun 2014 20:54:41 -0400</pubDate>
+    <lastBuildDate>Sun, 15 Jun 2014 20:54:41 -0400</lastBuildDate>
 
+    <item>
+      <title>Guava Goodies: Lightweight Design by Contract with Preconditions</title>
+      <link>http://akeffalas.github.io/blog/2014/06/guava-goodies-dbc-preconditions.html</link>
+      <pubDate>Sun, 15 Jun 2014 00:00:00 -0400</pubDate>
+      <guid isPermaLink="false">/2014/06/guava-goodies-dbc-preconditions.html</guid>
+      	<description>
+	&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;One of the more commonly used approaches for software API design is Bertrand Meyer&amp;#8217;s &lt;a href=&quot;http://en.wikipedia.org/wiki/Design_by_contract&quot;&gt;Design by Contract&lt;/a&gt;.  While it can be a very powerful technique, DbC can also be cumbersome (and overly strict) since to do it &quot;correctly&quot; a method&amp;#8217;s contract must define its: preconditions, postconditions, invariants, and side effects.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;My preference is to utilize a lightweight form of DbC in which a method contract only stipulates the required preconditions and the expected outcome (side effects) of the method&amp;#8217;s successful execution. The contract can be expressed with the method&amp;#8217;s description and parameter documentation via javadoc.  How do you enforce the contract&amp;#8217;s precondition constraints to allow for early failure during method invocation?&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Guava has you covered with its &lt;strong&gt;Preconditions&lt;/strong&gt; &lt;a href=&quot;https://code.google.com/p/guava-libraries/wiki/PreconditionsExplained&quot;&gt;utility&lt;/a&gt;.  Let&amp;#8217;s take a look at why a pure Java precondition verification implementation is truly dreadful.&lt;/p&gt;
+&lt;/div&gt;
+&lt;!--continue--&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_precondition_verification_with_java&quot;&gt;Precondition Verification with Java&lt;/h3&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;School.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package guava.demo.preconditions;
+
+import java.util.List;
+
+public class School {
+    private final String name;
+    private final List&amp;lt;String&amp;gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&amp;lt;String&amp;gt; departments) {
+        if( name == null ) {
+            throw new NullPointerException(&quot;Invalid name provided&quot;);
+        }
+
+        if( name.isEmpty() ) {
+            throw new IllegalArgumentException(&quot;The provided name cannot be empty&quot;);
+        }
+
+        if( departments == null ) {
+            throw new NullPointerException(&quot;Invalid department list provided&quot;);
+        }
+
+        if( departments.isEmpty() ) {
+            throw new IllegalArgumentException(&quot;The provided department list cannot be empty&quot;);
+        }
+
+        this.name = name;
+        this.departments = departments;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;While this implementation is valid it could certainly use some help.  Just imagine how much uglier this constructor will become as more construction parameters are added or if additional constraints need to be placed on the existing parameters.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_preconditions_to_the_rescue&quot;&gt;Preconditions to the Rescue&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Guava&amp;#8217;s &lt;strong&gt;Preconditions&lt;/strong&gt; offers the help we need here since its &lt;a href=&quot;http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/base/Preconditions.html&quot;&gt;API&lt;/a&gt; provides sanity checks for a number of the common exceptional inputs that a client caller can provide.  When the precondition is not met an &lt;strong&gt;Exception&lt;/strong&gt; is thrown with an optional, printf-style message.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Here are the methods that I tend to use the most along with the exception it throws:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;checkArgument(boolean)&lt;/code&gt; throws &lt;strong&gt;IllegalArgumentException&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;checkNotNull(T)&lt;/code&gt; throws &lt;strong&gt;NullPointerException&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;checkState(boolean)&lt;/code&gt; throws &lt;strong&gt;IllegalStateException&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Given this rather intuitive API you should be able to see how we can clean up our &lt;strong&gt;School&lt;/strong&gt; implementation.  Let&amp;#8217;s try it again, this time we&amp;#8217;ll utilize &lt;strong&gt;Preconditions&lt;/strong&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package guava.demo.preconditions;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull; &lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;(1)&lt;/b&gt;
+import static com.google.common.base.Preconditions.checkArgument;
+
+public class School {
+    private final String name;
+    private final List&amp;lt;String&amp;gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&amp;lt;String&amp;gt; departments) {
+        checkNotNull(name, &quot;Invalid name provided&quot;);
+        checkArgument(!name.isEmpty(), &quot;The provided name cannot be empty&quot;);
+
+        checkNotNull(departments, &quot;Invalid department list provided&quot;);
+        checkArgument(!departments.isEmpty(), &quot;The provided department list cannot be empty&quot;);
+
+        this.name = name;
+        this.departments = departments;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;i class=&quot;conum&quot; data-value=&quot;1&quot;&gt;&lt;/i&gt;&lt;b&gt;1&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;Using static imports for Preconditions helps remove excess noise from the verification code and is recommended by the Google documentation&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As you can see, the &lt;strong&gt;Preconditions&lt;/strong&gt; methods wrap all of that previous boiler-plate logic which allows us to write much cleaner code.  It&amp;#8217;s useful to mention that &lt;code&gt;checkNotNull()&lt;/code&gt; returns the provided reference if it is not null.  This allows for precondition calls to be &quot;chained&quot; together to make the implementation even more simplistic.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;public class School {
+    private final String name;
+    private final List&amp;lt;String&amp;gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&amp;lt;String&amp;gt; departments) {
+        checkArgument(!checkNotNull(name).isEmpty(), &quot;The provided name cannot be empty&quot;);
+        checkArgument(!checkNotNull(departments).isEmpty(), &quot;The provided department list cannot be empty&quot;);
+
+        this.name = name;
+        this.departments = departments;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;While this definitely cuts out a little bit of code, I don&amp;#8217;t recommend this approach since it&amp;#8217;s easier to debug when each precondition verification is on a separate line.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_verifying_state_before_running_an_operation&quot;&gt;Verifying State Before Running an Operation&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s say that you have a class that provides start/stop operation semantics.  For example, the class may consume data from a datasource only if it isn&amp;#8217;t currently consuming data.  Similarly, you can only stop data consumption if the consumption process has been started.  While these operations may typically be implemented as a no-operation (no-op), let&amp;#8217;s assume that we have strict semantics and an exception must be thrown to the client caller to let it know that it has called this class instance when in it was in an invalid state.   A simple way to do this would be to check the value of a flag in each method.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;DataConsumer.java&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint linenums java language-java&quot;&gt;&lt;code&gt;package guava.demo.preconditions;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.base.Preconditions.checkState;
+
+public final class DataConsumer {
+    private static final AtomicBoolean startedConsumption = new AtomicBoolean(false);
+
+    /**
+     * Attempts to consume data from the datasource.  This method cannot be called until consumption has stopped.
+     */
+    public static void startConsuming() {
+        checkState(!startedConsumption.get(), &quot;Consumption cannot be started until it has been stopped&quot;);
+
+        //doConsumption();
+
+        startedConsumption.set(true);
+    }
+
+    /**
+     * Attempts to stop consuming data from the datasource and cleanup existing resources.  This method cannot be
+     * called until consumption has started.
+     */
+    public static void stopConsuming() {
+        checkState(startedConsumption.get(), &quot;Consumption cannot be stopped since it was never started&quot;);
+
+        //stopAndCleanup();
+
+        startedConsumption.set(false);
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;While this is an admittedly contrived example, you should be able to see how &lt;code&gt;checkState()&lt;/code&gt; can be used to examine the internal state of an object to verify a method contract.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;_what_about_java_s_built_in_utilities&quot;&gt;What About Java&amp;#8217;s Built-in Utilities?&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;By now you&amp;#8217;re probably wondering why we don&amp;#8217;t just use &lt;code&gt;assert&lt;/code&gt; statements everywhere.  The problem with using asserts is that they&amp;#8217;re usually disabled on production JVMs and thus render your precondition verifications useless.  When debugging a problem in a production environment it&amp;#8217;s nice to be able to check the application logs for stacktraces that would point to a failed precondition check immediately.  Also, using &lt;code&gt;assert&lt;/code&gt; statements would bring back the ugly boiler-plate code that we saw in our initial implementation.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Fair enough, but what about JDK 7&amp;#8217;s &lt;code&gt;Objects.requireNonNull()&lt;/code&gt; &lt;a href=&quot;http://docs.oracle.com/javase/7/docs/api/java/util/Objects.html#requireNonNull%28java.lang.Object,java.lang.String%29&quot;&gt;method&lt;/a&gt;?  Obviously, this requires you to be working in a Java 7 environment so that could be a non-starter for some people.  The only difference that I&amp;#8217;m aware of is that you can&amp;#8217;t use printf-style messages when providing an error message.  I&amp;#8217;d say go ahead and use it, but if you already have Guava on the classpath I&amp;#8217;d stick with &lt;strong&gt;Preconditions&lt;/strong&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;_final_thoughts&quot;&gt;Final Thoughts&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you have Guava on your classpath, you should strongly consider utilizing &lt;strong&gt;Preconditions&lt;/strong&gt; to implement runtime contract precondition verification.  By following this approach, your code will fail early before any damage can potentially be done.  Additionally, it allows your code to avoid running resource intensive code segments that will fail due to a &lt;strong&gt;NullPointerException&lt;/strong&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s much easier to track down a runtime failure due to a precondition constraint violation.  Not only does it make your code more readable and testable, it&amp;#8217;ll save you time when debugging issues in production.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	</description>
+    </item>
     <item>
       <title>Guava Goodies: Create &quot;fluent&quot; Comparators with Ordering</title>
       <link>http://akeffalas.github.io/blog/2014/05/guava-goodies-fluent-ordering.html</link>

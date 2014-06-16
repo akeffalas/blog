@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>The Programmer's Tool Belt - Guava Goodies: Lightweight Design by Contract with Preconditions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Programmer's Tool Belt">
+    <meta name="author" content="akeffalas">
+    <meta name="keywords" content="programmer,java,maven,grails,git,jenkins">
+
+    <!-- Styles -->
+    <link href="/blog/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/blog/css/asciidoctor.css" rel="stylesheet">
+    <link href="/blog/css/base.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:700">
+    <link href="/blog/css/prettify_desert_theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/blog/favicon.ico?v=2" />
+
+  </head>
+  <body>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+    <div id="wrap">
+   
+	
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/blog/index.html">The Programmer's Tool Belt</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/blog/tags/java.html">Java</a></li>
+                <li><a href="/blog/tags/groovy.html">Groovy</a></li>
+                <li><a href="/blog/tags/grails.html">Grails</a></li>
+                <li><a href="/blog/tags/maven.html">Maven</a></li>
+              </ul>
+            </li>
+            <li><a href="/blog/archive.html">Archive</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/blog/about.html" title="About"><i class="fa fa-user fa-lg"></i></a></li>
+            <li><a href="https://github.com/akeffalas" target="_blank"><i class="fa fa-github fa-lg"></i></a></li>
+            <li><a href="/blog/feed.xml" target="_blank"><i class="fa fa-rss fa-lg"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+	
+	<div class="page-header">
+	    <h1>Guava Goodies: Lightweight Design by Contract with Preconditions</h1>
+
+            <p class="text-left text-muted">
+                <i class="fa fa-calendar"></i> <small>Sunday, June 15, 2014</small>
+                &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/blog/2014/06/guava-goodies-dbc-preconditions.html#disqus_thread">Comments</a>
+            </p>
+
+            <span class="glyphicon glyphicon-tag"></span>
+                  <a href="/blog/tags/java.html"><span class="label label-primary">java</span></a>
+                  <a href="/blog/tags/guava.html"><span class="label label-primary">guava</span></a>
+        </div> 
+
+	<p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the more commonly used approaches for software API design is Bertrand Meyer&#8217;s <a href="http://en.wikipedia.org/wiki/Design_by_contract">Design by Contract</a>.  While it can be a very powerful technique, DbC can also be cumbersome (and overly strict) since to do it "correctly" a method&#8217;s contract must define its: preconditions, postconditions, invariants, and side effects.</p>
+</div>
+<div class="paragraph">
+<p>My preference is to utilize a lightweight form of DbC in which a method contract only stipulates the required preconditions and the expected outcome (side effects) of the method&#8217;s successful execution. The contract can be expressed with the method&#8217;s description and parameter documentation via javadoc.  How do you enforce the contract&#8217;s precondition constraints to allow for early failure during method invocation?</p>
+</div>
+<div class="paragraph">
+<p>Guava has you covered with its <strong>Preconditions</strong> <a href="https://code.google.com/p/guava-libraries/wiki/PreconditionsExplained">utility</a>.  Let&#8217;s take a look at why a pure Java precondition verification implementation is truly dreadful.</p>
+</div>
+<!--continue-->
+</div>
+</div>
+<div class="sect2">
+<h3 id="_precondition_verification_with_java">Precondition Verification with Java</h3>
+<div class="listingblock">
+<div class="title">School.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package guava.demo.preconditions;
+
+import java.util.List;
+
+public class School {
+    private final String name;
+    private final List&lt;String&gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&lt;String&gt; departments) {
+        if( name == null ) {
+            throw new NullPointerException("Invalid name provided");
+        }
+
+        if( name.isEmpty() ) {
+            throw new IllegalArgumentException("The provided name cannot be empty");
+        }
+
+        if( departments == null ) {
+            throw new NullPointerException("Invalid department list provided");
+        }
+
+        if( departments.isEmpty() ) {
+            throw new IllegalArgumentException("The provided department list cannot be empty");
+        }
+
+        this.name = name;
+        this.departments = departments;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While this implementation is valid it could certainly use some help.  Just imagine how much uglier this constructor will become as more construction parameters are added or if additional constraints need to be placed on the existing parameters.</p>
+</div>
+<div class="sect3">
+<h4 id="_preconditions_to_the_rescue">Preconditions to the Rescue</h4>
+<div class="paragraph">
+<p>Guava&#8217;s <strong>Preconditions</strong> offers the help we need here since its <a href="http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/base/Preconditions.html">API</a> provides sanity checks for a number of the common exceptional inputs that a client caller can provide.  When the precondition is not met an <strong>Exception</strong> is thrown with an optional, printf-style message.</p>
+</div>
+<div class="paragraph">
+<p>Here are the methods that I tend to use the most along with the exception it throws:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>checkArgument(boolean)</code> throws <strong>IllegalArgumentException</strong></p>
+</li>
+<li>
+<p><code>checkNotNull(T)</code> throws <strong>NullPointerException</strong></p>
+</li>
+<li>
+<p><code>checkState(boolean)</code> throws <strong>IllegalStateException</strong></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Given this rather intuitive API you should be able to see how we can clean up our <strong>School</strong> implementation.  Let&#8217;s try it again, this time we&#8217;ll utilize <strong>Preconditions</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package guava.demo.preconditions;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull; <i class="conum" data-value="1"></i><b>(1)</b>
+import static com.google.common.base.Preconditions.checkArgument;
+
+public class School {
+    private final String name;
+    private final List&lt;String&gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&lt;String&gt; departments) {
+        checkNotNull(name, "Invalid name provided");
+        checkArgument(!name.isEmpty(), "The provided name cannot be empty");
+
+        checkNotNull(departments, "Invalid department list provided");
+        checkArgument(!departments.isEmpty(), "The provided department list cannot be empty");
+
+        this.name = name;
+        this.departments = departments;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Using static imports for Preconditions helps remove excess noise from the verification code and is recommended by the Google documentation</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As you can see, the <strong>Preconditions</strong> methods wrap all of that previous boiler-plate logic which allows us to write much cleaner code.  It&#8217;s useful to mention that <code>checkNotNull()</code> returns the provided reference if it is not null.  This allows for precondition calls to be "chained" together to make the implementation even more simplistic.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>public class School {
+    private final String name;
+    private final List&lt;String&gt; departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List&lt;String&gt; departments) {
+        checkArgument(!checkNotNull(name).isEmpty(), "The provided name cannot be empty");
+        checkArgument(!checkNotNull(departments).isEmpty(), "The provided department list cannot be empty");
+
+        this.name = name;
+        this.departments = departments;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While this definitely cuts out a little bit of code, I don&#8217;t recommend this approach since it&#8217;s easier to debug when each precondition verification is on a separate line.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_verifying_state_before_running_an_operation">Verifying State Before Running an Operation</h4>
+<div class="paragraph">
+<p>Let&#8217;s say that you have a class that provides start/stop operation semantics.  For example, the class may consume data from a datasource only if it isn&#8217;t currently consuming data.  Similarly, you can only stop data consumption if the consumption process has been started.  While these operations may typically be implemented as a no-operation (no-op), let&#8217;s assume that we have strict semantics and an exception must be thrown to the client caller to let it know that it has called this class instance when in it was in an invalid state.   A simple way to do this would be to check the value of a flag in each method.</p>
+</div>
+<div class="listingblock">
+<div class="title">DataConsumer.java</div>
+<div class="content">
+<pre class="prettyprint linenums java language-java"><code>package guava.demo.preconditions;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.base.Preconditions.checkState;
+
+public final class DataConsumer {
+    private static final AtomicBoolean startedConsumption = new AtomicBoolean(false);
+
+    /**
+     * Attempts to consume data from the datasource.  This method cannot be called until consumption has stopped.
+     */
+    public static void startConsuming() {
+        checkState(!startedConsumption.get(), "Consumption cannot be started until it has been stopped");
+
+        //doConsumption();
+
+        startedConsumption.set(true);
+    }
+
+    /**
+     * Attempts to stop consuming data from the datasource and cleanup existing resources.  This method cannot be
+     * called until consumption has started.
+     */
+    public static void stopConsuming() {
+        checkState(startedConsumption.get(), "Consumption cannot be stopped since it was never started");
+
+        //stopAndCleanup();
+
+        startedConsumption.set(false);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While this is an admittedly contrived example, you should be able to see how <code>checkState()</code> can be used to examine the internal state of an object to verify a method contract.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_what_about_java_s_built_in_utilities">What About Java&#8217;s Built-in Utilities?</h4>
+<div class="paragraph">
+<p>By now you&#8217;re probably wondering why we don&#8217;t just use <code>assert</code> statements everywhere.  The problem with using asserts is that they&#8217;re usually disabled on production JVMs and thus render your precondition verifications useless.  When debugging a problem in a production environment it&#8217;s nice to be able to check the application logs for stacktraces that would point to a failed precondition check immediately.  Also, using <code>assert</code> statements would bring back the ugly boiler-plate code that we saw in our initial implementation.</p>
+</div>
+<div class="paragraph">
+<p>Fair enough, but what about JDK 7&#8217;s <code>Objects.requireNonNull()</code> <a href="http://docs.oracle.com/javase/7/docs/api/java/util/Objects.html#requireNonNull%28java.lang.Object,java.lang.String%29">method</a>?  Obviously, this requires you to be working in a Java 7 environment so that could be a non-starter for some people.  The only difference that I&#8217;m aware of is that you can&#8217;t use printf-style messages when providing an error message.  I&#8217;d say go ahead and use it, but if you already have Guava on the classpath I&#8217;d stick with <strong>Preconditions</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_final_thoughts">Final Thoughts</h3>
+<div class="paragraph">
+<p>If you have Guava on your classpath, you should strongly consider utilizing <strong>Preconditions</strong> to implement runtime contract precondition verification.  By following this approach, your code will fail early before any damage can potentially be done.  Additionally, it allows your code to avoid running resource intensive code segments that will fail due to a <strong>NullPointerException</strong>.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s much easier to track down a runtime failure due to a precondition constraint violation.  Not only does it make your code more readable and testable, it&#8217;ll save you time when debugging issues in production.</p>
+</div>
+</div></p>
+
+        <br>
+
+        <div class="fb-like" data-href="/blog/2014/06/guava-goodies-dbc-preconditions.html" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+
+
+        <div class="g-plusone" data-size="medium" data-href="/blog/2014/06/guava-goodies-dbc-preconditions.html"></div>
+
+
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="/blog/2014/06/guava-goodies-dbc-preconditions.html" data-via="akeffalas" data-lang="en">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+        <hr>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_shortname = 'programmerstoolbelt'; // required: replace example with your forum shortname
+
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+	
+		</div>
+                <div id="push"></div>
+      </div>
+    
+      <div id="footer">
+        <div class="container">
+          <p class="muted credit text-center">&copy; 2014 | Baked with <a href="http://jbake.org">JBake</a></p>
+        </div>
+      </div>
+    
+    <!-- Javascript tools
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/blog/js/jquery-1.9.1.min.js"></script>
+    <script src="/blog/js/bootstrap.min.js"></script>
+    <script src="/blog/js/run_prettify.js"></script>
+
+    <script type="text/javascript">
+      window.___gcfg = {
+        lang: 'en-US'
+      };
+
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+
+
+    <script type="text/javascript">
+    var disqus_shortname = 'programmerstoolbelt';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+    </script>
+    
+
+  </body>
+</html>

@@ -82,6 +82,43 @@
 
                     <div class="panel panel-info">
                       <div class="panel-heading">                        
+                        <i class="fa fa-lg panel-title"><a href="/blog/2014/06/guava-goodies-dbc-preconditions.html" class="blogpost-title">Guava Goodies: Lightweight Design by Contract with Preconditions</a></i>
+                      </div>
+
+                      <div class="panel-body">
+                        <p class="text-left text-muted">
+                          <i class="fa fa-calendar"></i> <small>Sunday, June 15, 2014</small>
+                          &nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="/blog/2014/06/guava-goodies-dbc-preconditions.html#disqus_thread">Comments</a>
+                        </p>
+
+                    <span class="glyphicon glyphicon-tag"></span>
+                      <a href="/blog/tags/java.html"><span class="label label-primary">java</span></a>
+                      <a href="/blog/tags/guava.html"><span class="label label-primary">guava</span></a>
+                    <hr>
+                   
+                        <p><div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the more commonly used approaches for software API design is Bertrand Meyer&#8217;s <a href="http://en.wikipedia.org/wiki/Design_by_contract">Design by Contract</a>.  While it can be a very powerful technique, DbC can also be cumbersome (and overly strict) since to do it "correctly" a method&#8217;s contract must define its: preconditions, postconditions, invariants, and side effects.</p>
+</div>
+<div class="paragraph">
+<p>My preference is to utilize a lightweight form of DbC in which a method contract only stipulates the required preconditions and the expected outcome (side effects) of the method&#8217;s successful execution. The contract can be expressed with the method&#8217;s description and parameter documentation via javadoc.  How do you enforce the contract&#8217;s precondition constraints to allow for early failure during method invocation?</p>
+</div>
+<div class="paragraph">
+<p>Guava has you covered with its <strong>Preconditions</strong> <a href="https://code.google.com/p/guava-libraries/wiki/PreconditionsExplained">utility</a>.  Let&#8217;s take a look at why a pure Java precondition verification implementation is truly dreadful.</p>
+</div>
+</p>
+                        <p class="text-right">
+                            <a href="/blog/2014/06/guava-goodies-dbc-preconditions.html" class="btn btn-info btn-xs" role="button">Continue reading <span class="glyphicon glyphicon-share-alt"></span></a>
+                        </p>
+                        </div></div>
+
+
+                      </div> 
+                    </div> 
+
+                    <div class="panel panel-info">
+                      <div class="panel-heading">                        
                         <i class="fa fa-lg panel-title"><a href="/blog/2014/05/guava-goodies-fluent-ordering.html" class="blogpost-title">Guava Goodies: Create &quot;fluent&quot; Comparators with Ordering</a></i>
                       </div>
 
