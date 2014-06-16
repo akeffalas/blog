@@ -1,0 +1,192 @@
+= Guava Goodies: Lightweight Design by Contract with Preconditions
+akeffalas
+2014-06-15
+:jbake-type: post
+:jbake-tags: java,guava
+:jbake-status: published
+:source-highlighter: prettify
+:id: guava_goodies_dbc_preconditions
+:icons: font
+:dbc: http://en.wikipedia.org/wiki/Design_by_contract[Design by Contract]
+:preconditions_wiki: https://code.google.com/p/guava-libraries/wiki/PreconditionsExplained[utility]
+:jdk7_preconditions: http://docs.oracle.com/javase/7/docs/api/java/util/Objects.html#requireNonNull%28java.lang.Object,java.lang.String%29[method]
+:preconditions_api: http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/base/Preconditions.html[API]
+
+One of the more commonly used approaches for software API design is Bertrand Meyer's {dbc}.  While it can be a very powerful technique, DbC can also be cumbersome (and overly strict) since to do it "correctly" a method's contract must define its: preconditions, postconditions, invariants, and side effects.
+
+My preference is to utilize a lightweight form of DbC in which a method contract only stipulates the required preconditions and the expected outcome (side effects) of the method's successful execution. The contract can be expressed with the method's description and parameter documentation via javadoc.  How do you enforce the contract's precondition constraints to allow for early failure during method invocation?  
+
+Guava has you covered with its *Preconditions* {preconditions_wiki}.  Let's take a look at why a pure Java precondition verification implementation is truly dreadful.
+
+++++
+<!--continue-->
+++++
+
+=== Precondition Verification with Java  ===
+
+.School.java
+[source,java,numbered]
+----
+package guava.demo.preconditions;
+
+import java.util.List;
+
+public class School {
+    private final String name;
+    private final List<String> departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List<String> departments) {
+        if( name == null ) {
+            throw new NullPointerException("Invalid name provided");
+        }
+
+        if( name.isEmpty() ) {
+            throw new IllegalArgumentException("The provided name cannot be empty");
+        }
+
+        if( departments == null ) {
+            throw new NullPointerException("Invalid department list provided");
+        }
+
+        if( departments.isEmpty() ) {
+            throw new IllegalArgumentException("The provided department list cannot be empty");
+        }
+
+        this.name = name;
+        this.departments = departments;
+    }
+}
+----
+
+While this implementation is valid it could certainly use some help.  Just imagine how much uglier this constructor will become as more construction parameters are added or if additional constraints need to be placed on the existing parameters.
+
+
+
+==== Preconditions to the Rescue ====
+
+Guava's *Preconditions* offers the help we need here since its {preconditions_api} provides sanity checks for a number of the common exceptional inputs that a client caller can provide.  When the precondition is not met an *Exception* is thrown with an optional, printf-style message.
+
+Here are the methods that I tend to use the most along with the exception it throws:
+
+* `checkArgument(boolean)` throws *IllegalArgumentException*
+* `checkNotNull(T)` throws *NullPointerException*
+* `checkState(boolean)` throws *IllegalStateException*
+
+Given this rather intuitive API you should be able to see how we can clean up our *School* implementation.  Let's try it again, this time we'll utilize *Preconditions*:
+
+[source,java,numbered]
+----
+package guava.demo.preconditions;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull; <1>
+import static com.google.common.base.Preconditions.checkArgument;
+
+public class School {
+    private final String name;
+    private final List<String> departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List<String> departments) {
+        checkNotNull(name, "Invalid name provided");
+        checkArgument(!name.isEmpty(), "The provided name cannot be empty");
+
+        checkNotNull(departments, "Invalid department list provided");
+        checkArgument(!departments.isEmpty(), "The provided department list cannot be empty");
+
+        this.name = name;
+        this.departments = departments;
+    }
+}
+----
+<1> Using static imports for Preconditions helps remove excess noise from the verification code and is recommended by the Google documentation
+
+As you can see, the *Preconditions* methods wrap all of that previous boiler-plate logic which allows us to write much cleaner code.  It's useful to mention that `checkNotNull()` returns the provided reference if it is not null.  This allows for precondition calls to be "chained" together to make the implementation even more simplistic.
+
+[source,java,numbered]
+----
+public class School {
+    private final String name;
+    private final List<String> departments;
+
+    /**
+     * @param name The school name, not null or empty
+     * @param departments The list of departments at the school, not null or empty
+     */
+    public School(final String name, final List<String> departments) {
+        checkArgument(!checkNotNull(name).isEmpty(), "The provided name cannot be empty");
+        checkArgument(!checkNotNull(departments).isEmpty(), "The provided department list cannot be empty");
+
+        this.name = name;
+        this.departments = departments;
+    }
+}
+----
+
+While this definitely cuts out a little bit of code, I don't recommend this approach since it's easier to debug when each precondition verification is on a separate line.
+
+
+==== Verifying State Before Running an Operation ====
+
+Let's say that you have a class that provides start/stop operation semantics.  For example, the class may consume data from a datasource only if it isn't currently consuming data.  Similarly, you can only stop data consumption if the consumption process has been started.  While these operations may typically be implemented as a no-operation (no-op), let's assume that we have strict semantics and an exception must be thrown to the client caller to let it know that it has called this class instance when in it was in an invalid state.   A simple way to do this would be to check the value of a flag in each method.
+
+.DataConsumer.java
+[source,java,numbered]
+----
+package guava.demo.preconditions;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.base.Preconditions.checkState;
+
+public final class DataConsumer {
+    private static final AtomicBoolean startedConsumption = new AtomicBoolean(false);
+
+    /**
+     * Attempts to consume data from the datasource.  This method cannot be called until consumption has stopped.
+     */
+    public static void startConsuming() {
+        checkState(!startedConsumption.get(), "Consumption cannot be started until it has been stopped");
+
+        //doConsumption();
+
+        startedConsumption.set(true);
+    }
+
+    /**
+     * Attempts to stop consuming data from the datasource and cleanup existing resources.  This method cannot be
+     * called until consumption has started.
+     */
+    public static void stopConsuming() {
+        checkState(startedConsumption.get(), "Consumption cannot be stopped since it was never started");
+
+        //stopAndCleanup();
+
+        startedConsumption.set(false);
+    }
+}
+----
+
+While this is an admittedly contrived example, you should be able to see how `checkState()` can be used to examine the internal state of an object to verify a method contract.
+
+==== What About Java's Built-in Utilities? ====
+
+By now you're probably wondering why we don't just use `assert` statements everywhere.  The problem with using asserts is that they're usually disabled on production JVMs and thus render your precondition verifications useless.  When debugging a problem in a production environment it's nice to be able to check the application logs for stacktraces that would point to a failed precondition check immediately.  Also, using `assert` statements would bring back the ugly boiler-plate code that we saw in our initial implementation.
+
+Fair enough, but what about JDK 7's `Objects.requireNonNull()` {jdk7_preconditions}?  Obviously, this requires you to be working in a Java 7 environment so that could be a non-starter for some people.  The only difference that I'm aware of is that you can't use printf-style messages when providing an error message.  I'd say go ahead and use it, but if you already have Guava on the classpath I'd stick with *Preconditions*.
+
+=== Final Thoughts ===
+
+If you have Guava on your classpath, you should strongly consider utilizing *Preconditions* to implement runtime contract precondition verification.  By following this approach, your code will fail early before any damage can potentially be done.  Additionally, it allows your code to avoid running resource intensive code segments that will fail due to a *NullPointerException*.  
+
+It's much easier to track down a runtime failure due to a precondition constraint violation.  Not only does it make your code more readable and testable, it'll save you time when debugging issues in production.
+
+
